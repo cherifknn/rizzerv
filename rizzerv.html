@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Rizzerv - Restaurant Selection</title>
+  <link rel="stylesheet" href="rizzerv.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
+</head>
+<body>
+  <!-- Home Page -->
+  <div id="page-home" class="page">
+    <button id="selectButton" class="select-button">Pick restaurants</button>
+  </div>
+
+  <!-- List Page (initially hidden) -->
+  <div id="page-list" class="page hidden">
+    <!-- Filter icon -->
+    <button id="filterButton" class="filter-button" title="Filter by category">
+      <img src="filter-list-svgrepo-com.svg" alt="Filter icon" />
+    </button>
+
+    <!-- Filter panel (initially hidden) -->
+    <div id="filterPanel" class="filter-panel hidden">
+      <h3>Filter by Category</h3>
+      <select id="categorySelect"></select>
+      <button id="applyFilterButton">Apply</button>
+    </div>
+
+    <!-- Restaurants -->
+    <div class="restaurant-list" id="restaurantList"></div>
+
+    <!-- Thumbnails container for selected restaurants -->
+    <div class="selected-images" id="selectedImages"></div>
+
+    <!-- Send button -->
+    <button id="sendButton" class="send-button">Send</button>
+  </div>
+
+  <script src="rizzerv.js"></script>
+</body>
+</html>

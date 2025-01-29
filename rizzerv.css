@@ -1,0 +1,284 @@
+/* 1) Modern CSS Reset & Variables */
+:root {
+    --bg-primary: hsl(0 0% 98%);
+    --bg-secondary: hsl(0 0% 100% / 0.9);
+    --text-primary: hsl(240 10% 15%);
+    --accent: hsl(158 68% 42%);
+    --glass: hsl(0 0% 100% / 0.7);
+    --shadow-xs: 0 1px 3px hsl(0 0% 0% / 0.05);
+    --shadow-sm: 0 4px 6px -1px hsl(0 0% 0% / 0.05), 0 2px 4px -2px hsl(0 0% 0% / 0.05);
+    --radius-lg: 12px;
+    --radius-md: 8px;
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: hsl(240 10% 8%);
+      --bg-secondary: hsl(240 10% 12% / 0.9);
+      --text-primary: hsl(0 0% 95%);
+      --accent: hsl(158 68% 42%);
+      --glass: hsl(240 10% 15% / 0.7);
+    }
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  
+  /* 2) Modern Page Layouts */
+  .page {
+    width: 100%;
+    min-height: 100vh;
+    padding: 1.5rem;
+  }
+  
+  .hidden {
+    display: none !important;
+  }
+  
+  /* 3) Home Page - Glassmorphism Effect */
+  #page-home {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(45deg, hsl(210 40% 96%), hsl(214 32% 91%));
+  }
+  
+  .select-button {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid hsl(0 0% 90%);
+    font-size: 1.2rem;
+    padding: 1rem 2rem;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    transition: var(--transition);
+    backdrop-filter: blur(12px);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .select-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 12px -2px hsl(0 0% 0% / 0.05);
+  }
+  
+  /* 4) Restaurant Cards - Modern Material Design */
+  .restaurant-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+  
+  .restaurant-card {
+    background: var(--bg-secondary);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: var(--transition);
+    border: 1px solid hsl(0 0% 90% / 0.3);
+    position: relative;
+  }
+  
+  .restaurant-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom right, hsl(0 0% 100% / 0.3), transparent);
+    pointer-events: none;
+  }
+  
+  .restaurant-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+  
+  .card-content {
+    padding: 1.2rem;
+  }
+  
+  .card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  
+  .card-meta {
+    font-size: 0.85rem;
+    color: hsl(0 0% 60%);
+    margin-bottom: 0.75rem;
+  }
+  
+  .restaurant-card.selected {
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 0 3px hsl(158 68% 42% / 0.15);
+  }
+  
+  /* 5) Floating Action Buttons */
+  .send-button {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 1rem 1.8rem;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+  }
+  
+  .send-button:hover {
+    transform: scale(1.05);
+    opacity: 0.95;
+  }
+  
+  /* ... (unchanged code above) ... */
+
+/* 6) Filter Components - Glassmorphism */
+.filter-button {
+    position: fixed;
+    top: 2rem;
+    right: 2rem;
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(0 0% 90% / 0.3);
+    padding: 0.7rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition);
+  
+    /* ADD THIS to ensure it's on top of restaurant cards */
+    z-index: 9999;
+  }
+  
+  .filter-button:hover {
+    background: hsl(0 0% 100% / 0.9);
+    transform: rotate(15deg);
+  }
+  
+  .filter-panel {
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(0 0% 90% / 0.3);
+    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    position: fixed;
+    top: 6rem; /* Adjust if needed */
+    right: 2rem;
+    width: 300px;
+  
+    /* ADD THIS so the panel is also on top of cards */
+    z-index: 9998;
+  }
+  
+  
+  /* 7) Modern Form Elements */
+  #categorySelect {
+    background: var(--bg-secondary);
+    border: 1px solid hsl(0 0% 90% / 0.3);
+    border-radius: var(--radius-md);
+    padding: 0.75rem;
+    width: 100%;
+    margin: 1rem 0;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 1.2em;
+  }
+  
+  /* 8) Responsive Design Tweaks */
+  @media (max-width: 600px) {
+    .page {
+      padding: 1rem;
+    }
+    
+    .restaurant-list {
+      grid-template-columns: 1fr;
+    }
+    
+    .filter-button {
+        position: fixed;
+        top: 2rem;
+        right: 2rem;
+        background: var(--glass);
+        /*backdrop-filter: blur(12px);*/
+        border: 1px solid hsl(0 0% 90% / 0.3);
+        padding: 0.7rem;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: var(--transition);
+        z-index: 9999; /* Ensure it's above the cards */
+      }
+      
+      .filter-button img {
+        width: 24px;
+        height: 24px;
+      }
+    
+    .send-button {
+      bottom: 1rem;
+      right: 1rem;
+      padding: 0.9rem 1.5rem;
+    }
+  
+    .filter-panel {
+      top: 4.5rem;
+      right: 1rem;
+      width: 240px;
+    }
+  }
+  
+  /* 9) Smooth Animations */
+  @media (prefers-reduced-motion: no-preference) {
+    .restaurant-card {
+      animation: cardEntrance 0.4s ease-out;
+    }
+    
+    @keyframes cardEntrance {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  }
+  .selected-images {
+    position: fixed;
+    bottom: 2rem;
+    right: 8rem;
+    display: flex;
+    gap: 0.5rem;
+    z-index: 9999;
+  }
+  .selected-images img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 6px;
+    border: 2px solid #fff;
+    cursor: pointer;
+  }
