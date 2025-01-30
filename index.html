@@ -9,6 +9,10 @@
 <body>
   <!-- Home Page -->
   <div id="page-home" class="page">
+    <div class="welcome-text">
+      <p>Your plan won't die this time.</p>
+    </div>
+
     <button id="selectButton" class="select-button">Select Restaurants</button>
   </div>
 
@@ -19,20 +23,25 @@
       <h1>Rizzerv</h1>
     </header>
 
-    <!-- Filter button (below header, top-right) -->
-    <button id="filterButton" class="filter-button" title="Filter by category">
+    <!-- Filter button (fixed at top-right) -->
+    <button id="filterButton" class="filter-button" title="Filter by description">
       <img src="filter-list-svgrepo-com.svg" alt="Filter icon" />
     </button>
 
     <!-- Filter panel (hidden by default) -->
     <div id="filterPanel" class="filter-panel hidden">
-      <h3>Filter by Category</h3>
-      <select id="categorySelect"></select>
+      <h3>Filter by Description</h3>
+      <input type="text" id="descriptionSearch" placeholder="Enter keywords..." />
       <button id="applyFilterButton">Apply</button>
+      <button id="clearFilterButton" class="clear-button">Clear</button>
     </div>
 
-    <!-- Scrollable restaurant list (in the middle) -->
-    <div class="restaurant-list" id="restaurantList"></div>
+    <!-- Swipeable Restaurant Cards Container -->
+    <div class="restaurant-list" id="restaurantList">
+      <div class="swipe-container" id="swipeContainer">
+        <!-- Restaurant cards will be dynamically inserted here -->
+      </div>
+    </div>
 
     <!-- Fixed footer at the bottom of the screen -->
     <footer class="app-footer">
