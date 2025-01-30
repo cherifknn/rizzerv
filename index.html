@@ -5,36 +5,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Rizzerv - Restaurant Selection</title>
   <link rel="stylesheet" href="rizzerv.css" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
 </head>
 <body>
   <!-- Home Page -->
   <div id="page-home" class="page">
-    <button id="selectButton" class="select-button">Pick restaurants</button>
+    <button id="selectButton" class="select-button">Select Restaurants</button>
   </div>
 
-  <!-- List Page (initially hidden) -->
+  <!-- List Page (hidden initially) -->
   <div id="page-list" class="page hidden">
-    <!-- Filter icon -->
+    <!-- Sticky header at the top -->
+    <header class="app-header">
+      <h1>Rizzerv</h1>
+    </header>
+
+    <!-- Filter button (below header, top-right) -->
     <button id="filterButton" class="filter-button" title="Filter by category">
       <img src="filter-list-svgrepo-com.svg" alt="Filter icon" />
     </button>
 
-    <!-- Filter panel (initially hidden) -->
+    <!-- Filter panel (hidden by default) -->
     <div id="filterPanel" class="filter-panel hidden">
       <h3>Filter by Category</h3>
       <select id="categorySelect"></select>
       <button id="applyFilterButton">Apply</button>
     </div>
 
-    <!-- Restaurants -->
+    <!-- Scrollable restaurant list (in the middle) -->
     <div class="restaurant-list" id="restaurantList"></div>
 
-    <!-- Thumbnails container for selected restaurants -->
-    <div class="selected-images" id="selectedImages"></div>
-
-    <!-- Send button -->
-    <button id="sendButton" class="send-button">Send</button>
+    <!-- Fixed footer at the bottom of the screen -->
+    <footer class="app-footer">
+      <!-- Thumbnails for selected restaurants -->
+      <div id="selectedImages" class="selected-images"></div>
+      <!-- Send button -->
+      <button id="sendButton" class="send-button">Send</button>
+    </footer>
   </div>
 
   <script src="rizzerv.js"></script>
