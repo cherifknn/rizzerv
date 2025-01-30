@@ -1,4 +1,4 @@
-/* 1) Modern CSS Reset & Variables */
+/* 1) CSS Reset & Variables */
 :root {
     --bg-primary: hsl(0 0% 98%);
     --bg-secondary: hsl(0 0% 100% / 0.9);
@@ -37,23 +37,23 @@
     -webkit-font-smoothing: antialiased;
   }
   
-  /* 2) Modern Page Layouts */
+  /* 2) Page layout & visibility */
   .page {
     width: 100%;
     min-height: 100vh;
-    padding: 1.5rem;
   }
   
   .hidden {
     display: none !important;
   }
   
-  /* 3) Home Page - Glassmorphism Effect */
+  /* 3) Home page */
   #page-home {
     display: flex;
     align-items: center;
     justify-content: center;
     background: linear-gradient(45deg, hsl(210 40% 96%), hsl(214 32% 91%));
+    height: 100vh;
   }
   
   .select-button {
@@ -68,20 +68,127 @@
     backdrop-filter: blur(12px);
     box-shadow: var(--shadow-sm);
   }
-  
   .select-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 12px -2px hsl(0 0% 0% / 0.05);
   }
   
-  /* 4) Restaurant Cards - Modern Material Design */
+  /* 4) Header bar - sticky at top */
+  .app-header {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    background: var(--bg-secondary);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid hsl(0 0% 90% / 0.3);
+    padding: 1rem 2rem;
+    text-align: center;
+    z-index: 1000;
+  }
+  .app-header h1 {
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+  
+/* 5) Filter button now fixed at top-right of the screen */
+.filter-button {
+    position: fixed; 
+    top: 80px;        /* or adjust for how far below the top you want it */
+    right: 1rem;
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(0 0% 90% / 0.3);
+    padding: 0.7rem;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: var(--transition);
+    z-index: 9999;    /* ensure it’s above restaurant cards */
+  }
+  
+  .filter-button:hover {
+    background: hsl(0 0% 100% / 0.9);
+    transform: rotate(15deg);
+  }
+  
+  .filter-button img {
+    width: 24px;
+    height: 24px;
+  }
+  
+  /* 6) Footer bar - fixed at bottom of screen */
+  .app-footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--bg-secondary);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid hsl(0 0% 90% / 0.3);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1000;
+  }
+  
+  /* Thumbnails container in footer */
+  .selected-images {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .selected-images img {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    border: 2px solid #fff;
+    cursor: pointer;
+    box-shadow: var(--shadow-xs);
+  }
+  
+  /* Send button in footer */
+  .send-button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 0.8rem 1.8rem;
+    border-radius: var(--radius-lg);
+    cursor: pointer;
+    display: none; 
+    font-weight: 500;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+  }
+  .send-button:hover {
+    transform: scale(1.05);
+    opacity: 0.95;
+  }
+  
+  /* 7) Filter panel (absolute) */
+  .filter-panel {
+    background: var(--glass);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(0 0% 90% / 0.3);
+    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    position: absolute;
+    top: 130px; /* open below the header or near it */
+    right: 1rem;
+    width: 260px;
+  }
+  
+  /* 8) Restaurant list (scrollable between top header & bottom footer) */
   .restaurant-list {
+    padding: 1rem 2rem;
+    margin-top: 20px;  /* ensure we start below the header & filter button */
+    margin-bottom: 100px; /* space for fixed footer so bottom cards are not hidden */
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
-    margin-top: 2rem;
   }
   
+  /* Restaurant card styling */
   .restaurant-card {
     background: var(--bg-secondary);
     border-radius: var(--radius-lg);
@@ -90,7 +197,6 @@
     border: 1px solid hsl(0 0% 90% / 0.3);
     position: relative;
   }
-  
   .restaurant-card::before {
     content: '';
     position: absolute;
@@ -98,101 +204,34 @@
     background: linear-gradient(to bottom right, hsl(0 0% 100% / 0.3), transparent);
     pointer-events: none;
   }
-  
   .restaurant-card img {
     width: 100%;
     height: 200px;
     object-fit: cover;
-    border-radius: var(--radius-md) var(--radius-md) 0 0;
   }
-  
   .card-content {
     padding: 1.2rem;
   }
-  
   .card-title {
     font-size: 1.2rem;
     font-weight: 600;
     margin-bottom: 0.5rem;
   }
-  
   .card-meta {
     font-size: 0.85rem;
     color: hsl(0 0% 60%);
     margin-bottom: 0.75rem;
   }
-  
+  .card-description {
+    font-size: 0.9rem;
+    color: var(--text-primary);
+  }
   .restaurant-card.selected {
     border: 2px solid var(--accent);
     box-shadow: 0 0 0 3px hsl(158 68% 42% / 0.15);
   }
   
-  /* 5) Floating Action Buttons */
-  .send-button {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    background: var(--accent);
-    color: white;
-    border: none;
-    padding: 1rem 1.8rem;
-    border-radius: var(--radius-lg);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 500;
-    transition: var(--transition);
-    box-shadow: var(--shadow-sm);
-  }
-  
-  .send-button:hover {
-    transform: scale(1.05);
-    opacity: 0.95;
-  }
-  
-  /* ... (unchanged code above) ... */
-
-/* 6) Filter Components - Glassmorphism */
-.filter-button {
-    position: fixed;
-    top: 2rem;
-    right: 2rem;
-    background: var(--glass);
-    backdrop-filter: blur(12px);
-    border: 1px solid hsl(0 0% 90% / 0.3);
-    padding: 0.7rem;
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: var(--transition);
-  
-    /* ADD THIS to ensure it's on top of restaurant cards */
-    z-index: 9999;
-  }
-  
-  .filter-button:hover {
-    background: hsl(0 0% 100% / 0.9);
-    transform: rotate(15deg);
-  }
-  
-  .filter-panel {
-    background: var(--glass);
-    backdrop-filter: blur(12px);
-    border: 1px solid hsl(0 0% 90% / 0.3);
-    box-shadow: var(--shadow-sm);
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
-    position: fixed;
-    top: 6rem; /* Adjust if needed */
-    right: 2rem;
-    width: 300px;
-  
-    /* ADD THIS so the panel is also on top of cards */
-    z-index: 9998;
-  }
-  
-  
-  /* 7) Modern Form Elements */
+  /* 9) Category select styling */
   #categorySelect {
     background: var(--bg-secondary);
     border: 1px solid hsl(0 0% 90% / 0.3);
@@ -207,54 +246,30 @@
     background-size: 1.2em;
   }
   
-  /* 8) Responsive Design Tweaks */
+  /* 10) Responsive Tweaks */
   @media (max-width: 600px) {
-    .page {
-      padding: 1rem;
-    }
-    
-    .restaurant-list {
-      grid-template-columns: 1fr;
-    }
-    
     .filter-button {
-        position: fixed;
-        top: 2rem;
-        right: 2rem;
-        background: var(--glass);
-        /*backdrop-filter: blur(12px);*/
-        border: 1px solid hsl(0 0% 90% / 0.3);
-        padding: 0.7rem;
-        border-radius: var(--radius-md);
-        cursor: pointer;
-        transition: var(--transition);
-        z-index: 9999; /* Ensure it's above the cards */
-      }
-      
-      .filter-button img {
-        width: 24px;
-        height: 24px;
-      }
-    
-    .send-button {
-      bottom: 1rem;
-      right: 1rem;
-      padding: 0.9rem 1.5rem;
+      top: 70px;
+      right: 0.5rem;
     }
-  
     .filter-panel {
-      top: 4.5rem;
-      right: 1rem;
-      width: 240px;
+      top: 120px;
+      right: 0.5rem;
+      width: 220px;
+    }
+    .restaurant-list {
+      margin-top: 0px;
+      margin-bottom: 80px;
+      padding: 1rem;
+      grid-template-columns: 1fr;
     }
   }
   
-  /* 9) Smooth Animations */
+  /* 11) Subtle animation (if no reduced motion) */
   @media (prefers-reduced-motion: no-preference) {
     .restaurant-card {
       animation: cardEntrance 0.4s ease-out;
     }
-    
     @keyframes cardEntrance {
       from {
         opacity: 0;
@@ -266,19 +281,4 @@
       }
     }
   }
-  .selected-images {
-    position: fixed;
-    bottom: 2rem;
-    right: 8rem;
-    display: flex;
-    gap: 0.5rem;
-    z-index: 9999;
-  }
-  .selected-images img {
-    width: 48px;
-    height: 48px;
-    object-fit: cover;
-    border-radius: 6px;
-    border: 2px solid #fff;
-    cursor: pointer;
-  }
+  
