@@ -1,8 +1,8 @@
 /***********************************************************
  * rizzerv.js
- * - Filter logic
+ * - Swipe-based filter and selection
  * - Up to 4 selections
- * - Thumbnails in "footer" bar (now fixed at bottom)
+ * - Thumbnails in "footer" bar (fixed at bottom)
  * - Clicking a thumbnail => scroll to card
  ************************************************************/
 
@@ -10,14 +10,15 @@
 const selectButton = document.getElementById("selectButton");
 const pageHome = document.getElementById("page-home");
 const pageList = document.getElementById("page-list");
-const restaurantList = document.getElementById("restaurantList");
+const swipeContainer = document.getElementById("swipeContainer");
 const sendButton = document.getElementById("sendButton");
 
 // Filter elements
 const filterButton = document.getElementById("filterButton");
 const filterPanel = document.getElementById("filterPanel");
-const categorySelect = document.getElementById("categorySelect");
+const descriptionSearch = document.getElementById("descriptionSearch");
 const applyFilterButton = document.getElementById("applyFilterButton");
+const clearFilterButton = document.getElementById("clearFilterButton");
 
 // Thumbnails container
 const selectedImages = document.getElementById("selectedImages");
@@ -28,6 +29,9 @@ const MAX_SELECTION = 4;
 // Keep all restaurants + filtered subset
 let allRestaurants = [];
 let filteredRestaurants = [];
+
+// Current card index
+let currentIndex = 0;
 
 /**
  * "Select Restaurants" button (Home page)
@@ -53,15 +57,17 @@ function fetchRestaurants() {
     .then(csvData => {
       allRestaurants = parseCSV(csvData);
       filteredRestaurants = allRestaurants.slice();
-      renderRestaurantList(filteredRestaurants);
+      renderRestaurantCards(filteredRestaurants);
       populateCategorySelect(allRestaurants);
+      displayCurrentCard();
     })
     .catch(err => console.error("Error fetching CSV:", err));
 }
 
 /************************************************************
  * CSV Parsing
- * Columns: 0) name, 1) photo_1, 3) desc_short, 4) neighborhood, 5) source1, 9) category
+ * Columns: 0) name, 1) photo_1, 3) description_short, 
+ * 4) neighborhood, 5) source1, 9) category
  ************************************************************/
 function parseCSV(csvString) {
   const lines = csvString.trim().split("\n");
@@ -108,23 +114,15 @@ function parseCSVLine(line) {
 }
 
 /************************************************************
- * Render restaurant cards
+ * Render restaurant cards into swipe-container
  ************************************************************/
-function renderRestaurantList(restaurants) {
-  restaurantList.innerHTML = "";
+function renderRestaurantCards(restaurants) {
+  swipeContainer.innerHTML = "";
 
-  restaurants.forEach(r => {
+  restaurants.forEach((r, index) => {
     const card = document.createElement("div");
     card.classList.add("restaurant-card");
-
-    // ID to scroll to
-    const cardId = `card-${slugify(r.name)}`;
-    card.id = cardId;
-
-    // Mark selected if in array
-    if (selectedRestaurants.some(sel => sel.name === r.name)) {
-      card.classList.add("selected");
-    }
+    card.dataset.index = index; // For reference
 
     // Image
     const img = document.createElement("img");
@@ -154,61 +152,204 @@ function renderRestaurantList(restaurants) {
     card.appendChild(img);
     card.appendChild(content);
 
-    // Toggle selection on click
-    card.addEventListener("click", () => {
-      toggleSelection(card, r);
-    });
-
-    restaurantList.appendChild(card);
+    swipeContainer.appendChild(card);
   });
 }
 
 /************************************************************
- * Toggle selection => add or remove thumbnail in fixed footer
+ * Populate category select dropdown
  ************************************************************/
-function toggleSelection(cardElement, data) {
-  const isSelected = cardElement.classList.contains("selected");
+function populateCategorySelect(rests) {
+  const categories = new Set();
+  rests.forEach(r => {
+    if (r.category) categories.add(r.category);
+  });
+  const sortedCats = Array.from(categories).sort();
 
-  if (!isSelected) {
-    // Select
-    if (selectedRestaurants.length < MAX_SELECTION) {
-      cardElement.classList.add("selected");
-      selectedRestaurants.push(data);
+  categorySelect.innerHTML = "";
 
-      // Create thumbnail
-      const thumb = document.createElement("img");
-      thumb.src = data.photo_1;
-      thumb.alt = data.name;
-      thumb.id = `thumbnail-${slugify(data.name)}`;
+  // "All Categories"
+  const allOption = document.createElement("option");
+  allOption.value = "";
+  allOption.textContent = "All Categories";
+  categorySelect.appendChild(allOption);
 
-      // Click => scroll to card
-      thumb.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const cardToScroll = document.getElementById(`card-${slugify(data.name)}`);
-        if (cardToScroll) {
-          cardToScroll.scrollIntoView({ behavior: "smooth", block: "center" });
-          highlightCard(cardToScroll);
-        }
-      });
+  sortedCats.forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value = cat;
+    opt.textContent = cat;
+    categorySelect.appendChild(opt);
+  });
+}
 
-      selectedImages.appendChild(thumb);
+/************************************************************
+ * Display the current card based on currentIndex
+ ************************************************************/
+function displayCurrentCard() {
+  const cards = swipeContainer.querySelectorAll(".restaurant-card");
+  cards.forEach((card, index) => {
+    if (index === currentIndex) {
+      card.style.display = "block";
+      card.classList.remove("swipe-left", "swipe-right");
+      addSwipeListeners(card);
     } else {
-      alert(`You can only select up to ${MAX_SELECTION} restaurants.`);
+      card.style.display = "none";
     }
-  } else {
-    // Deselect
-    cardElement.classList.remove("selected");
-    selectedRestaurants = selectedRestaurants.filter(r => r.name !== data.name);
+  });
+}
 
-    // Remove thumbnail
-    const thumbToRemove = document.getElementById(`thumbnail-${slugify(data.name)}`);
-    if (thumbToRemove) {
-      thumbToRemove.remove();
+/************************************************************
+ * Add swipe event listeners to a card
+ ************************************************************/
+function addSwipeListeners(card) {
+  let startX = 0;
+  let startY = 0;
+  let isSwiping = false;
+
+  // Touch events
+  card.addEventListener("touchstart", touchStart);
+  card.addEventListener("touchmove", touchMove);
+  card.addEventListener("touchend", touchEnd);
+
+  // Mouse events
+  card.addEventListener("mousedown", mouseStart);
+  card.addEventListener("mousemove", mouseMove);
+  card.addEventListener("mouseup", mouseEnd);
+  card.addEventListener("mouseleave", mouseEnd);
+
+  function touchStart(e) {
+    const touch = e.touches[0];
+    startX = touch.clientX;
+    startY = touch.clientY;
+    isSwiping = true;
+  }
+
+  function touchMove(e) {
+    if (!isSwiping) return;
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - startX;
+    const deltaY = touch.clientY - startY;
+
+    // Optional: Visual feedback during swipe
+    card.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${deltaX * 0.05}deg)`;
+  }
+
+  function touchEnd(e) {
+    if (!isSwiping) return;
+    isSwiping = false;
+    const touch = e.changedTouches[0];
+    const deltaX = touch.clientX - startX;
+    handleSwipe(deltaX);
+  }
+
+  function mouseStart(e) {
+    startX = e.clientX;
+    startY = e.clientY;
+    isSwiping = true;
+  }
+
+  function mouseMove(e) {
+    if (!isSwiping) return;
+    const deltaX = e.clientX - startX;
+    const deltaY = e.clientY - startY;
+
+    // Optional: Visual feedback during swipe
+    card.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${deltaX * 0.05}deg)`;
+  }
+
+  function mouseEnd(e) {
+    if (!isSwiping) return;
+    isSwiping = false;
+    const deltaX = e.clientX - startX;
+    handleSwipe(deltaX);
+  }
+
+  /**
+   * Handle swipe based on deltaX
+   */
+  function handleSwipe(deltaX) {
+    const swipeThreshold = 100; // Minimum px needed for a swipe
+    const cards = swipeContainer.querySelectorAll(".restaurant-card");
+
+    if (deltaX > swipeThreshold) {
+      // Swiped Right - Select
+      card.classList.add("swipe-right");
+      addToSelection(currentIndex);
+    } else if (deltaX < -swipeThreshold) {
+      // Swiped Left - Skip
+      card.classList.add("swipe-left");
+      // No action needed for skip
+    } else {
+      // Not a valid swipe - reset position
+      card.style.transform = "";
+      return;
     }
+
+    // After animation, show next card
+    card.addEventListener("transitionend", onTransitionEnd, { once: true });
+  }
+
+  /**
+   * After swipe animation ends
+   */
+  function onTransitionEnd() {
+    const cards = swipeContainer.querySelectorAll(".restaurant-card");
+    card.style.display = "none";
+    card.style.transform = "";
+    currentIndex++;
+    if (currentIndex < cards.length) {
+      displayCurrentCard();
+    } else {
+      // No more cards
+      alert("You've gone through all the restaurants!");
+    }
+  }
+}
+
+/************************************************************
+ * Add restaurant to selection and update thumbnails
+ ************************************************************/
+function addToSelection(index) {
+  if (selectedRestaurants.length >= MAX_SELECTION) {
+    alert(`You can only select up to ${MAX_SELECTION} restaurants.`);
+    return;
+  }
+
+  const restaurant = filteredRestaurants[index];
+  if (!selectedRestaurants.some(r => r.name === restaurant.name)) {
+    selectedRestaurants.push(restaurant);
+    addThumbnail(restaurant);
   }
 
   // Show/hide Send button
   sendButton.style.display = selectedRestaurants.length > 0 ? "block" : "none";
+}
+
+/**
+ * Create and append thumbnail image
+ */
+function addThumbnail(restaurant) {
+  const thumb = document.createElement("img");
+  thumb.src = restaurant.photo_1;
+  thumb.alt = restaurant.name;
+  thumb.id = `thumbnail-${slugify(restaurant.name)}`;
+
+  // Click => scroll to card
+  thumb.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const cardToScroll = swipeContainer.querySelector(`.restaurant-card[data-index="${filteredRestaurants.indexOf(restaurant)}"]`);
+    if (cardToScroll) {
+      // Simulate smooth scrolling by setting currentIndex and displaying the card
+      cardToScroll.style.display = "block";
+      cardToScroll.classList.remove("swipe-left", "swipe-right");
+      addSwipeListeners(cardToScroll);
+      currentIndex = filteredRestaurants.indexOf(restaurant);
+      displayCurrentCard();
+      highlightCard(cardToScroll);
+    }
+  });
+
+  selectedImages.appendChild(thumb);
 }
 
 /**
@@ -238,43 +379,40 @@ function slugify(str) {
 }
 
 /************************************************************
- * Filter Logic
+ * Filter Logic based on description_short
  ************************************************************/
-function populateCategorySelect(rests) {
-  const categories = new Set();
-  rests.forEach(r => {
-    if (r.category) categories.add(r.category);
-  });
-  const sortedCats = Array.from(categories).sort();
-
-  categorySelect.innerHTML = "";
-
-  // "All Categories"
-  const allOption = document.createElement("option");
-  allOption.value = "";
-  allOption.textContent = "All Categories";
-  categorySelect.appendChild(allOption);
-
-  sortedCats.forEach(cat => {
-    const opt = document.createElement("option");
-    opt.value = cat;
-    opt.textContent = cat;
-    categorySelect.appendChild(opt);
-  });
-}
-
 applyFilterButton.addEventListener("click", () => {
+  const query = descriptionSearch.value.trim().toLowerCase();
   filterPanel.classList.add("hidden");
-  const selectedCat = categorySelect.value;
+  currentIndex = 0;
+  selectedRestaurants = [];
+  selectedImages.innerHTML = "";
+  sendButton.style.display = "none";
 
-  if (!selectedCat) {
+  if (query === "") {
     filteredRestaurants = allRestaurants.slice();
   } else {
-    filteredRestaurants = allRestaurants.filter(r => r.category === selectedCat);
+    filteredRestaurants = allRestaurants.filter(r => 
+      r.description_short.toLowerCase().includes(query)
+    );
   }
-  renderRestaurantList(filteredRestaurants);
+  renderRestaurantCards(filteredRestaurants);
+  displayCurrentCard();
 });
 
+clearFilterButton.addEventListener("click", () => {
+  descriptionSearch.value = "";
+  filterPanel.classList.add("hidden");
+  currentIndex = 0;
+  selectedRestaurants = [];
+  selectedImages.innerHTML = "";
+  sendButton.style.display = "none";
+  filteredRestaurants = allRestaurants.slice();
+  renderRestaurantCards(filteredRestaurants);
+  displayCurrentCard();
+});
+
+// Toggle filter panel visibility
 filterButton.addEventListener("click", () => {
   filterPanel.classList.toggle("hidden");
 });
