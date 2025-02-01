@@ -63,10 +63,10 @@
       cursor: pointer;
     }
 
-    /* Flow container */
+    /* Restaurant Flow container */
     .restaurant-flow {
-      margin-top: 80px;           
-      padding-bottom: 100px;      
+      margin-top: 80px;           /* account for fixed header */
+      padding-bottom: 100px;      /* account for selection bar */
     }
 
     .flow-item {
@@ -295,6 +295,29 @@
       color: #fff;
       border: 1px solid #fff;
     }
+
+    /***********************************************
+      SEARCH BAR
+    ***********************************************/
+    .search-container {
+      position: absolute;
+      top: 60px; /* just below the header */
+      right: 20px;
+      background: var(--color-bg);
+      border: 1px solid #444;
+      border-radius: 6px;
+      padding: 8px;
+      display: none; /* hidden by default */
+      z-index: 1500;
+    }
+    .search-container input {
+      background: #252a2c;
+      color: #fff;
+      border: 1px solid #555;
+      border-radius: 4px;
+      padding: 6px 8px;
+      width: 200px;
+    }
   </style>
 </head>
 <body>
@@ -303,8 +326,14 @@
     <h1>Rizzerv</h1>
     <div class="header-icons">
       <img src="filter-list-svgrepo-com.svg" alt="Filter" class="header-icon" id="filterIcon" />
-      <img src="magnifying-glass-backup-svgrepo-com.svg" alt="Search" class="header-icon" />
+      <!-- Add ID to the Search icon for easy reference -->
+      <img src="magnifying-glass-backup-svgrepo-com.svg" alt="Search" class="header-icon" id="searchIcon" />
     </div>
+  </div>
+
+  <!-- Hidden Search Container -->
+  <div class="search-container" id="searchContainer">
+    <input type="text" id="searchInput" placeholder="Search restaurants..." />
   </div>
 
   <!-- "Limit reached!" Message -->
@@ -356,6 +385,14 @@
     const typeSelect = document.getElementById("typeSelect");
     const sourceSelect = document.getElementById("sourceSelect");
 
+    // SEARCH DOM references
+    const searchIcon = document.getElementById("searchIcon");
+    const searchContainer = document.getElementById("searchContainer");
+    const searchInput = document.getElementById("searchInput");
+
+    /********************************************************
+     * Show/hide limit message
+     ********************************************************/
     function showLimitMessage() {
       limitMessage.style.display = "block";
       setTimeout(() => {
@@ -363,12 +400,15 @@
       }, 2000);
     }
 
-    // Renders restaurants => store displayed indices
+    /********************************************************
+     * Render and update restaurants
+     ********************************************************/
     function renderRestaurants(dataArr) {
       let html = "";
       currentDisplayedIndices = [];
       dataArr.forEach((row) => {
         const originalIndex = allRestaurants.indexOf(row);
+        // skip if row is invalid
         if (!row.name || originalIndex < 0) return;
 
         html += generateFlowItemHTML(row, originalIndex);
@@ -378,9 +418,8 @@
       attachAddButtons();
     }
 
-    // Build the HTML for one restaurant
     function generateFlowItemHTML(restaurant, index) {
-      const priceRange = "$60-$80";
+      const priceRange = "$60-$80"; // placeholder
       const shortDesc = restaurant.description_short || "";
 
       let longDesc = restaurant.description_long || "";
@@ -422,7 +461,7 @@
           const name = item.querySelector(".flow-name").textContent;
           const image = item.querySelector(".flow-image").src;
 
-          // Already selected?
+          // Check if already selected
           const existing = selectedRestaurants.find((r) => r.id === itemId);
 
           if (existing) {
@@ -503,8 +542,6 @@
       const chosenTypes = getSelectedOptions(typeSelect);
       const chosenSources = getSelectedOptions(sourceSelect);
 
-      // Row passes if shortDesc in chosenTypes (or empty => pass all)
-      // AND source1 in chosenSources (or empty => pass all)
       let filtered = allRestaurants.filter((r) => {
         const sDesc = r.description_short || "";
         const sSource = r.source1 || "";
@@ -519,7 +556,6 @@
       filterOverlay.style.display = "none";
     });
 
-    // Helper: read multiple selected values
     function getSelectedOptions(selectEl) {
       const result = [];
       for (let opt of selectEl.options) {
@@ -530,7 +566,17 @@
       return result;
     }
 
-    // Gather unique shortDesc and source1 to fill the multi-select
+    // CSV fetch => store => populate filter => render
+    fetch("restaurants.csv")
+      .then((resp) => resp.text())
+      .then((csv) => {
+        const parsed = Papa.parse(csv, { header: true });
+        allRestaurants = parsed.data;
+        populateFilterOptions();
+        renderRestaurants(allRestaurants);
+      })
+      .catch((err) => console.error(err));
+
     function populateFilterOptions() {
       const shortSet = new Set();
       const sourceSet = new Set();
@@ -557,16 +603,60 @@
       });
     }
 
-    // Fetch CSV -> store -> populate filter => render
-    fetch("restaurants.csv")
-      .then((resp) => resp.text())
-      .then((csv) => {
-        const parsed = Papa.parse(csv, { header: true });
-        allRestaurants = parsed.data;
-        populateFilterOptions();
+    /********************************************************
+     * SEARCH BAR FUNCTIONALITIES
+    ********************************************************/
+    // 1) Toggle display of search bar on icon click
+    searchIcon.addEventListener("click", (e) => {
+      e.stopPropagation(); // avoid immediate click-outside
+      if (searchContainer.style.display === "none" || !searchContainer.style.display) {
+        // Show search bar
+        searchContainer.style.display = "block";
+        searchInput.focus();
+      } else {
+        // Hide search bar
+        hideSearchBar();
+      }
+    });
+
+    // 2) Hide the search bar when clicking outside it
+    document.addEventListener("click", (e) => {
+      if (searchContainer.style.display === "block") {
+        // If click is outside the search container & icon, close it
+        if (
+          !searchContainer.contains(e.target) &&
+          e.target !== searchIcon
+        ) {
+          hideSearchBar();
+        }
+      }
+    });
+
+    function hideSearchBar() {
+      searchContainer.style.display = "none";
+      searchInput.value = "";
+      renderRestaurants(allRestaurants);
+    }
+
+    // 3) Live-filter the restaurants by name as user types
+    searchInput.addEventListener("input", (e) => {
+      const searchTerm = e.target.value.trim().toLowerCase();
+      if (!searchTerm) {
+        // If empty, show all
         renderRestaurants(allRestaurants);
-      })
-      .catch((err) => console.error(err));
+        return;
+      }
+
+      // Filter by restaurant name (case-insensitive)
+      const filtered = allRestaurants.filter((r) => {
+        return (
+          r.name &&
+          r.name.toLowerCase().includes(searchTerm)
+        );
+      });
+
+      renderRestaurants(filtered);
+    });
   </script>
 </body>
 </html>
