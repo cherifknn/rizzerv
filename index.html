@@ -42,6 +42,10 @@
       align-items: center;
       background: var(--color-bg);
       z-index: 1000;
+      transition: transform 0.3s ease; /* for hiding on scroll */
+    }
+    .header.hidden {
+      transform: translateY(-100%); /* hide header by moving upward */
     }
     .header h1 {
       font-weight: 700;
@@ -63,21 +67,45 @@
       cursor: pointer;
     }
 
-    /* Restaurant Flow container */
+    /* Search Bar (full width, fixed below the header) */
+    .search-container {
+      position: fixed;
+      top: 60px; /* just below the header's default 60px-ish height */
+      left: 0;
+      width: 100%;
+      background: var(--color-bg);
+      padding: 8px;
+      border-top: 1px solid #444;
+      border-bottom: 1px solid #444;
+      display: none; /* hidden by default */
+      z-index: 999;  /* just under the header (1000) so it stays visible */
+    }
+    .search-container input {
+      width: 100%;
+      background: #252a2c;
+      color: #fff;
+      border: 1px solid #555;
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-size: 16px;
+    }
+
+    /* Restaurant Flow container
+       - we add extra top margin to account for header height + search bar */
     .restaurant-flow {
-      margin-top: 80px;           /* account for fixed header */
-      padding-bottom: 100px;      /* account for selection bar */
+      margin-top: 120px;  /* 60px header + ~60px search container area */
+      padding-bottom: 100px; /* account for selection bar at bottom */
     }
 
     .flow-item {
       position: relative;
-      margin-bottom: 18px;        
+      margin-bottom: 18px;
     }
 
     .image-container {
       position: relative;
       width: 100%;
-      height: 300px; 
+      height: 300px;
       overflow: hidden;
     }
 
@@ -139,6 +167,7 @@
       z-index: 2;
     }
 
+    /* The "Add" button: updated corner radius to 12px */
     .add-button {
       position: absolute;
       bottom: 20px;
@@ -147,7 +176,7 @@
       color: var(--color-text);
       border: none;
       padding: 12px 24px;
-      border-radius: 30px;
+      border-radius: 12px; /* updated */
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -157,7 +186,7 @@
       background: var(--color-added);
     }
 
-    /* Descriptions below */
+    /* Descriptions below the image */
     .flow-content {
       padding: 1rem 1.5rem;
     }
@@ -229,7 +258,7 @@
     }
 
     /***********************************************
-      FILTER CARD - Match the dark theme
+      FILTER CARD - Dark theme
     ***********************************************/
     .filter-card-overlay {
       display: none;            
@@ -287,7 +316,7 @@
       font-size: 14px;
     }
     .btn-apply {
-      background: var(--color-btn); /* #B1759F */
+      background: var(--color-btn); 
       color: #fff;
     }
     .btn-close {
@@ -295,43 +324,19 @@
       color: #fff;
       border: 1px solid #fff;
     }
-
-    /***********************************************
-      SEARCH BAR
-    ***********************************************/
-    .search-container {
-      position: absolute;
-      top: 60px; /* just below the header */
-      right: 20px;
-      background: var(--color-bg);
-      border: 1px solid #444;
-      border-radius: 6px;
-      padding: 8px;
-      display: none; /* hidden by default */
-      z-index: 1500;
-    }
-    .search-container input {
-      background: #252a2c;
-      color: #fff;
-      border: 1px solid #555;
-      border-radius: 4px;
-      padding: 6px 8px;
-      width: 200px;
-    }
   </style>
 </head>
 <body>
   <!-- Header -->
-  <div class="header">
+  <div class="header" id="mainHeader">
     <h1>Rizzerv</h1>
     <div class="header-icons">
       <img src="filter-list-svgrepo-com.svg" alt="Filter" class="header-icon" id="filterIcon" />
-      <!-- Add ID to the Search icon for easy reference -->
       <img src="magnifying-glass-backup-svgrepo-com.svg" alt="Search" class="header-icon" id="searchIcon" />
     </div>
   </div>
 
-  <!-- Hidden Search Container -->
+  <!-- Full-width Search Bar -->
   <div class="search-container" id="searchContainer">
     <input type="text" id="searchInput" placeholder="Search restaurants..." />
   </div>
@@ -374,6 +379,7 @@
     let currentDisplayedIndices = []; // which restaurant indices are displayed
 
     // DOM references
+    const header = document.getElementById("mainHeader");
     const restaurantFlow = document.getElementById("restaurantFlow");
     const thumbnailContainer = document.getElementById("thumbnailContainer");
     const nextButton = document.getElementById("nextButton");
@@ -419,7 +425,8 @@
     }
 
     function generateFlowItemHTML(restaurant, index) {
-      const priceRange = "$60-$80"; // placeholder
+      // Price range is a placeholder
+      const priceRange = "$60-$80";
       const shortDesc = restaurant.description_short || "";
 
       let longDesc = restaurant.description_long || "";
@@ -566,17 +573,6 @@
       return result;
     }
 
-    // CSV fetch => store => populate filter => render
-    fetch("restaurants.csv")
-      .then((resp) => resp.text())
-      .then((csv) => {
-        const parsed = Papa.parse(csv, { header: true });
-        allRestaurants = parsed.data;
-        populateFilterOptions();
-        renderRestaurants(allRestaurants);
-      })
-      .catch((err) => console.error(err));
-
     function populateFilterOptions() {
       const shortSet = new Set();
       const sourceSet = new Set();
@@ -586,6 +582,7 @@
         if (r.source1) sourceSet.add(r.source1);
       });
 
+      // Clear out existing
       typeSelect.innerHTML = "";
       sourceSelect.innerHTML = "";
 
@@ -608,7 +605,7 @@
     ********************************************************/
     // 1) Toggle display of search bar on icon click
     searchIcon.addEventListener("click", (e) => {
-      e.stopPropagation(); // avoid immediate click-outside
+      e.stopPropagation(); // avoid immediate "click-outside" close
       if (searchContainer.style.display === "none" || !searchContainer.style.display) {
         // Show search bar
         searchContainer.style.display = "block";
@@ -622,11 +619,7 @@
     // 2) Hide the search bar when clicking outside it
     document.addEventListener("click", (e) => {
       if (searchContainer.style.display === "block") {
-        // If click is outside the search container & icon, close it
-        if (
-          !searchContainer.contains(e.target) &&
-          e.target !== searchIcon
-        ) {
+        if (!searchContainer.contains(e.target) && e.target !== searchIcon) {
           hideSearchBar();
         }
       }
@@ -646,17 +639,53 @@
         renderRestaurants(allRestaurants);
         return;
       }
-
       // Filter by restaurant name (case-insensitive)
       const filtered = allRestaurants.filter((r) => {
-        return (
-          r.name &&
-          r.name.toLowerCase().includes(searchTerm)
-        );
+        return r.name && r.name.toLowerCase().includes(searchTerm);
       });
-
       renderRestaurants(filtered);
     });
+
+    /********************************************************
+     * HEADER DISAPPEARS WHEN SCROLLING DOWN, REAPPEARS WHEN UP
+    ********************************************************/
+    let lastScrollTop = 0;
+    let scrollingTimeout;
+
+    window.addEventListener("scroll", () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+      // If scrolling down, hide the header
+      if (scrollTop > lastScrollTop) {
+        // user is scrolling down
+        header.classList.add("hidden");
+      } else {
+        // user is scrolling up
+        header.classList.remove("hidden");
+      }
+      lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+
+      // Optional: if you want the header to reappear after user stops scrolling
+      // we can use a small timeout.
+      if (scrollingTimeout) clearTimeout(scrollingTimeout);
+      scrollingTimeout = setTimeout(() => {
+        // user stopped scrolling
+        header.classList.remove("hidden");
+      }, 150);
+    });
+
+    /********************************************************
+     * Fetch CSV => store => populate => render
+    ********************************************************/
+    fetch("restaurants.csv")
+      .then((resp) => resp.text())
+      .then((csv) => {
+        const parsed = Papa.parse(csv, { header: true });
+        allRestaurants = parsed.data;
+        populateFilterOptions();
+        renderRestaurants(allRestaurants);
+      })
+      .catch((err) => console.error(err));
   </script>
 </body>
 </html>
