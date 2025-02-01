@@ -21,10 +21,10 @@
     }
 
     :root {
-      --color-bg: #0D1517;      /* Dark background */
-      --color-text: #ffffff;    /* White text */
-      --color-btn: #B1759F;     /* Add button color */
-      --color-added: #2ecc71;   /* Button color when "Added" */
+      --color-bg: #0D1517;       /* Dark background */
+      --color-text: #ffffff;     /* White text */
+      --color-btn: #B1759F;      /* Add button color */
+      --color-added: #2ecc71;    /* Button color when "Added" */
     }
 
     body {
@@ -63,21 +63,21 @@
       cursor: pointer;
     }
 
-    /* Flow container (full width, stacked) */
+    /* Flow container */
     .restaurant-flow {
-      margin-top: 80px;       /* space below fixed header */
-      padding-bottom: 100px;  /* so last item isn't hidden by selection bar */
+      margin-top: 80px;           
+      padding-bottom: 100px;      
     }
 
     .flow-item {
       position: relative;
-      margin-bottom: 18px; /* 18px space between each restaurant section */
+      margin-bottom: 18px;        
     }
 
     .image-container {
       position: relative;
       width: 100%;
-      height: 300px; /* fixed height */
+      height: 300px; 
       overflow: hidden;
     }
 
@@ -117,6 +117,17 @@
       z-index: 2;
     }
 
+    .flow-mention {
+      position: absolute;
+      top: 42px;
+      left: 20px;
+      font-size: 14px;
+      opacity: 0.8;
+      color: var(--color-text);
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      z-index: 2;
+    }
+
     .flow-price {
       position: absolute;
       top: 20px;
@@ -146,6 +157,7 @@
       background: var(--color-added);
     }
 
+    /* Descriptions below */
     .flow-content {
       padding: 1rem 1.5rem;
     }
@@ -190,7 +202,7 @@
       cursor: pointer;
     }
     .next-button {
-      display: none; /* hidden until first selection is made */
+      display: none; 
       background: none;
       color: var(--color-text);
       border: 2px solid var(--color-text);
@@ -200,15 +212,12 @@
       cursor: pointer;
     }
 
-    /*
-      Limit message bubble:
-      - Now centered on the page
-    */
+    /* Limit message bubble (>4 selections) */
     .limit-message {
       position: fixed;
-      top: 50%;  /* center vertically */
-      left: 50%; /* center horizontally */
-      transform: translate(-50%, -50%); /* anchor to center */
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
       background: rgba(0,0,0,0.85);
       color: #fff;
       padding: 0.8rem 1.2rem;
@@ -216,7 +225,75 @@
       font-size: 16px;
       font-weight: 400;
       display: none;
-      z-index: 2000; /* above everything else */
+      z-index: 2000;
+    }
+
+    /***********************************************
+      FILTER CARD - Match the dark theme
+    ***********************************************/
+    .filter-card-overlay {
+      display: none;            
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.7); /* semi-transparent backdrop */
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+    .filter-card {
+      background: var(--color-bg);
+      color: var(--color-text);
+      border: 2px solid #2c2c2c;
+      border-radius: 10px;
+      width: 320px;
+      padding: 1.5rem;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+    }
+    .filter-card h2 {
+      margin-bottom: 1rem;
+      font-size: 18px;
+    }
+    .filter-card label {
+      font-size: 14px;
+      font-weight: 600;
+      display: block;
+      margin-top: 1rem;
+      margin-bottom: 0.25rem;
+    }
+    .filter-card select {
+      width: 100%;
+      margin-bottom: 0.5rem;
+      font-size: 14px;
+      background: #252a2c;
+      color: #fff;
+      border: 1px solid #555;
+      border-radius: 6px;
+      padding: 4px;
+    }
+    .filter-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    .filter-buttons button {
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn-apply {
+      background: var(--color-btn); /* #B1759F */
+      color: #fff;
+    }
+    .btn-close {
+      background: none;
+      color: #fff;
+      border: 1px solid #fff;
     }
   </style>
 </head>
@@ -225,12 +302,12 @@
   <div class="header">
     <h1>Rizzerv</h1>
     <div class="header-icons">
-      <img src="filter-list-svgrepo-com.svg" alt="Filter" class="header-icon" />
+      <img src="filter-list-svgrepo-com.svg" alt="Filter" class="header-icon" id="filterIcon" />
       <img src="magnifying-glass-backup-svgrepo-com.svg" alt="Search" class="header-icon" />
     </div>
   </div>
 
-  <!-- Message bubble for "Limit reached!" -->
+  <!-- "Limit reached!" Message -->
   <div class="limit-message" id="limitMessage">Limit reached!</div>
 
   <!-- Flow Container -->
@@ -242,32 +319,82 @@
     <button class="next-button" id="nextButton">Next</button>
   </div>
 
+  <!-- FILTER CARD OVERLAY -->
+  <div class="filter-card-overlay" id="filterOverlay">
+    <div class="filter-card">
+      <h2>Filter Options</h2>
+      <!-- Type => short descriptions -->
+      <label for="typeSelect">Type (Multi-Select)</label>
+      <select id="typeSelect" size="5" multiple></select>
+
+      <!-- Mentioned in => source1 -->
+      <label for="sourceSelect">Mentioned in (Multi-Select)</label>
+      <select id="sourceSelect" size="5" multiple></select>
+
+      <div class="filter-buttons">
+        <button class="btn-close" id="closeFilterBtn">Close</button>
+        <button class="btn-apply" id="applyFilterBtn">Apply</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const MAX_SELECTION = 4;
     let selectedRestaurants = [];
+    let allRestaurants = [];
+    let currentDisplayedIndices = []; // which restaurant indices are displayed
 
     // DOM references
-    const thumbnailContainer = document.getElementById('thumbnailContainer');
-    const nextButton = document.getElementById('nextButton');
-    const limitMessage = document.getElementById('limitMessage');
+    const restaurantFlow = document.getElementById("restaurantFlow");
+    const thumbnailContainer = document.getElementById("thumbnailContainer");
+    const nextButton = document.getElementById("nextButton");
+    const limitMessage = document.getElementById("limitMessage");
+    const filterIcon = document.getElementById("filterIcon");
+    const filterOverlay = document.getElementById("filterOverlay");
+    const closeFilterBtn = document.getElementById("closeFilterBtn");
+    const applyFilterBtn = document.getElementById("applyFilterBtn");
+    const typeSelect = document.getElementById("typeSelect");
+    const sourceSelect = document.getElementById("sourceSelect");
 
-    // Show ephemeral "Limit reached!" message in center
     function showLimitMessage() {
-      limitMessage.style.display = 'block';
+      limitMessage.style.display = "block";
       setTimeout(() => {
-        limitMessage.style.display = 'none';
+        limitMessage.style.display = "none";
       }, 2000);
     }
 
-    // Build each restaurant HTML
+    // Renders restaurants => store displayed indices
+    function renderRestaurants(dataArr) {
+      let html = "";
+      currentDisplayedIndices = [];
+      dataArr.forEach((row) => {
+        const originalIndex = allRestaurants.indexOf(row);
+        if (!row.name || originalIndex < 0) return;
+
+        html += generateFlowItemHTML(row, originalIndex);
+        currentDisplayedIndices.push(originalIndex);
+      });
+      restaurantFlow.innerHTML = html;
+      attachAddButtons();
+    }
+
+    // Build the HTML for one restaurant
     function generateFlowItemHTML(restaurant, index) {
       const priceRange = "$60-$80";
       const shortDesc = restaurant.description_short || "";
 
-      // First 100 chars of the long description
       let longDesc = restaurant.description_long || "";
       const tooLong = longDesc.length > 100;
       longDesc = longDesc.slice(0, 100) + (tooLong ? "..." : "");
+
+      let mentionLine = "";
+      if (restaurant.source1) {
+        mentionLine = `
+          <div class="flow-mention">
+            Mentioned in ${restaurant.source1}
+          </div>
+        `;
+      }
 
       return `
         <div class="flow-item" data-id="${index}">
@@ -275,6 +402,7 @@
             <img src="${restaurant.photo_1}" class="flow-image" alt="${restaurant.name}" />
             <div class="gradient-overlay"></div>
             <h2 class="flow-name">${restaurant.name}</h2>
+            ${mentionLine}
             <div class="flow-price">${priceRange}</div>
             <button class="add-button">Add</button>
           </div>
@@ -286,44 +414,26 @@
       `;
     }
 
-    // Update selection bar
-    function updateSelectionBar() {
-      thumbnailContainer.innerHTML = selectedRestaurants
-        .map(
-          (r) => `<img src="${r.image}" 
-                    data-id="${r.id}" 
-                    class="selection-thumbnail" 
-                    alt="${r.name}">`
-        )
-        .join('');
-
-      // Show/hide Next button
-      if (selectedRestaurants.length > 0) {
-        nextButton.style.display = 'inline-block';
-      } else {
-        nextButton.style.display = 'none';
-      }
-    }
-
     function attachAddButtons() {
       document.querySelectorAll(".add-button").forEach((button) => {
         button.addEventListener("click", (e) => {
           const item = e.target.closest(".flow-item");
-          const itemId = item.getAttribute("data-id");
+          const itemId = item.getAttribute("data-id"); 
           const name = item.querySelector(".flow-name").textContent;
           const image = item.querySelector(".flow-image").src;
 
+          // Already selected?
           const existing = selectedRestaurants.find((r) => r.id === itemId);
 
           if (existing) {
-            // Remove from selection
+            // Remove
             selectedRestaurants = selectedRestaurants.filter((r) => r.id !== itemId);
             button.classList.remove("added");
             button.textContent = "Add";
           } else {
-            // Add new if under max
+            // Add if under limit
             if (selectedRestaurants.length >= MAX_SELECTION) {
-              showLimitMessage(); // Display ephemeral pop-up
+              showLimitMessage();
               return;
             }
             selectedRestaurants.push({ id: itemId, name, image });
@@ -331,44 +441,130 @@
             button.textContent = "Added";
           }
           updateSelectionBar();
-          attachThumbnailClicks(); // re-bind thumbnail clicks after update
+          attachThumbnailClicks();
         });
       });
     }
 
-    // Clicking on a thumbnail scrolls to that restaurant
     function attachThumbnailClicks() {
-      document.querySelectorAll('.selection-thumbnail').forEach((thumb) => {
-        thumb.addEventListener('click', () => {
-          const id = thumb.getAttribute('data-id');
-          const target = document.querySelector(`.flow-item[data-id="${id}"]`);
-          if (target) {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.querySelectorAll(".selection-thumbnail").forEach((thumb) => {
+        thumb.addEventListener("click", () => {
+          const id = parseInt(thumb.getAttribute("data-id"), 10);
+          // If this ID isn't currently displayed => reset to ALL
+          if (!currentDisplayedIndices.includes(id)) {
+            renderRestaurants(allRestaurants);
+            setTimeout(() => {
+              scrollToFlowItem(id);
+            }, 50);
+          } else {
+            scrollToFlowItem(id);
           }
         });
       });
     }
 
+    function scrollToFlowItem(id) {
+      const target = document.querySelector(`.flow-item[data-id="${id}"]`);
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+
+    function updateSelectionBar() {
+      thumbnailContainer.innerHTML = selectedRestaurants
+        .map(
+          (r) => `<img src="${r.image}" data-id="${r.id}" 
+                    class="selection-thumbnail" alt="${r.name}">`
+        )
+        .join("");
+
+      if (selectedRestaurants.length > 0) {
+        nextButton.style.display = "inline-block";
+      } else {
+        nextButton.style.display = "none";
+      }
+    }
+
     // Next button placeholder
-    nextButton.addEventListener('click', () => {
+    nextButton.addEventListener("click", () => {
       alert("Next button clicked! Implement your own logic here.");
     });
 
-    // Fetch CSV -> build restaurants
+    /********************************************************
+     * FILTER CARD => MULTI-SELECT: shortDesc and source1
+    ********************************************************/
+    filterIcon.addEventListener("click", () => {
+      filterOverlay.style.display = "flex";
+    });
+    closeFilterBtn.addEventListener("click", () => {
+      filterOverlay.style.display = "none";
+    });
+    applyFilterBtn.addEventListener("click", () => {
+      const chosenTypes = getSelectedOptions(typeSelect);
+      const chosenSources = getSelectedOptions(sourceSelect);
+
+      // Row passes if shortDesc in chosenTypes (or empty => pass all)
+      // AND source1 in chosenSources (or empty => pass all)
+      let filtered = allRestaurants.filter((r) => {
+        const sDesc = r.description_short || "";
+        const sSource = r.source1 || "";
+
+        const matchesType = chosenTypes.length === 0 || chosenTypes.includes(sDesc);
+        const matchesSource = chosenSources.length === 0 || chosenSources.includes(sSource);
+
+        return matchesType && matchesSource;
+      });
+
+      renderRestaurants(filtered);
+      filterOverlay.style.display = "none";
+    });
+
+    // Helper: read multiple selected values
+    function getSelectedOptions(selectEl) {
+      const result = [];
+      for (let opt of selectEl.options) {
+        if (opt.selected && opt.value) {
+          result.push(opt.value);
+        }
+      }
+      return result;
+    }
+
+    // Gather unique shortDesc and source1 to fill the multi-select
+    function populateFilterOptions() {
+      const shortSet = new Set();
+      const sourceSet = new Set();
+
+      allRestaurants.forEach((r) => {
+        if (r.description_short) shortSet.add(r.description_short);
+        if (r.source1) sourceSet.add(r.source1);
+      });
+
+      typeSelect.innerHTML = "";
+      sourceSelect.innerHTML = "";
+
+      shortSet.forEach((val) => {
+        const opt = document.createElement("option");
+        opt.value = val;
+        opt.textContent = val;
+        typeSelect.appendChild(opt);
+      });
+      sourceSet.forEach((val) => {
+        const opt = document.createElement("option");
+        opt.value = val;
+        opt.textContent = val;
+        sourceSelect.appendChild(opt);
+      });
+    }
+
+    // Fetch CSV -> store -> populate filter => render
     fetch("restaurants.csv")
       .then((resp) => resp.text())
       .then((csv) => {
         const parsed = Papa.parse(csv, { header: true });
-        const data = parsed.data;
-
-        let html = "";
-        data.forEach((row, idx) => {
-          if (!row.name) return; // skip incomplete
-          html += generateFlowItemHTML(row, idx);
-        });
-
-        document.getElementById("restaurantFlow").innerHTML = html;
-        attachAddButtons();
+        allRestaurants = parsed.data;
+        populateFilterOptions();
+        renderRestaurants(allRestaurants);
       })
       .catch((err) => console.error(err));
   </script>
