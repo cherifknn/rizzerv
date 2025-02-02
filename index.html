@@ -19,9 +19,9 @@
     :root {
       --color-bg: #0D1517;       /* Dark background */
       --color-text: #ffffff;     /* White text */
-      --color-btn: #B1759F;      /* Button color */
+      --color-btn: #B1759F;      /* Button color (e.g. Add button) */
       --color-added: #2ecc71;    /* Button color when "Added" */
-      --header-height: 60px;     /* Height of header top row */
+      --header-height: 60px;     /* Height for header top row */
     }
     body {
       background: var(--color-bg);
@@ -69,9 +69,9 @@
       height: 24px;
       cursor: pointer;
     }
-    /* Search bar row (inside header, always fixed) */
+    /* Search Bar Row inside header */
     .search-container {
-      display: none;  /* shown on icon tap */
+      display: none;  /* shown on tap */
       padding: 8px 1rem;
       border-top: 1px solid #444;
       border-bottom: 1px solid #444;
@@ -106,7 +106,6 @@
     /***********************************************
      * RESTAURANT FEED
     ***********************************************/
-    /* The feed begins below the fixed header (the search bar is inside the header) */
     .restaurant-flow {
       margin-top: calc(var(--header-height) + 10px);
       padding-bottom: 100px;
@@ -127,7 +126,7 @@
       height: 100%;
       object-fit: cover;
       display: block;
-      cursor: pointer; /* for double-click add */
+      cursor: pointer;
     }
     .gradient-overlay {
       position: absolute;
@@ -341,7 +340,8 @@
       width: 100%;
       height: 100vh;
       background: var(--color-bg);
-      z-index: 1200;
+      /* Higher than recap page */
+      z-index: 1400;
       overflow-y: auto;
     }
     .details-image-container {
@@ -430,7 +430,7 @@
     }
 
     /***********************************************
-     * EVENT RECAP PAGE
+     * EVENT RECAP (Event Recap) PAGE
     ***********************************************/
     .recap-page {
       display: none;
@@ -461,7 +461,7 @@
       font-size: 16px;
       color: #ccc;
     }
-    /* Event details: Event name and date/time pickers */
+    /* Event details: Event name input and date/time picker */
     .recap-event-details {
       margin-bottom: 1rem;
     }
@@ -480,7 +480,7 @@
       font-size: 16px;
       margin-bottom: 8px;
     }
-    /* Recap list: show photo tiles with restaurant name overlaid */
+    /* Recap list: grid of restaurant photos with name overlaid */
     .recap-list {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -512,25 +512,32 @@
       color: #fff;
       font-weight: 500;
     }
-    .recap-footer-buttons {
+    /* Recap page buttons: positioned like on the details page */
+    .recap-back-button {
       position: fixed;
       bottom: 20px;
-      width: 100%;
-      display: flex;
-      justify-content: space-around;
-      left: 0;
-    }
-    .recap-button {
+      left: 20px;
       background: none;
-      border: 2px solid #fff;
-      color: #fff;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
+      color: #ffffff;
+      border: none;
+      padding: 0;
+      font-weight: 500;
+      font-size: 18px;
       cursor: pointer;
-      font-size: 16px;
+      z-index: 2;
     }
-    .recap-button:hover {
-      background: #444;
+    .recap-share-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--color-btn);
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      z-index: 2;
     }
   </style>
 </head>
@@ -590,7 +597,7 @@
       <div class="details-mention" id="detailsMention"></div>
     </div>
     <div class="details-content" id="detailsContent"></div>
-    <!-- Floating Buttons (Back & Add) -->
+    <!-- Floating Buttons: Back & Add -->
     <button class="details-back-button" id="detailsBackButton">Back</button>
     <button class="details-add-button" id="detailsAddButton">Add</button>
   </div>
@@ -602,20 +609,19 @@
         <h2>Event Recap</h2>
         <p id="recapSubtitle">Share your event with your friends:</p>
       </div>
-      <!-- Event Details: Editable fields -->
+      <!-- Event Details: Editable Event Name and Date/Time Picker -->
       <div class="recap-event-details">
         <label for="eventName">Event Name</label>
         <input type="text" id="eventName" placeholder="Enter event name" />
         <label for="eventDateTime">Date & Time</label>
         <input type="datetime-local" id="eventDateTime" />
       </div>
-      <!-- Recap List: Photo grid with name overlay -->
+      <!-- Recap List: Grid of restaurant photos with name overlay -->
       <div class="recap-list" id="recapList"></div>
     </div>
-    <div class="recap-footer-buttons">
-      <button class="recap-button" id="recapBackBtn">Back</button>
-      <button class="recap-button" id="recapShareBtn">Share</button>
-    </div>
+    <!-- Recap Page Buttons: Positioned like on details page -->
+    <button class="recap-back-button" id="recapBackBtn">Back</button>
+    <button class="recap-share-button" id="recapShareBtn">Share</button>
   </div>
 
   <script>
@@ -784,6 +790,10 @@
       }
       updateSelectionBar();
       attachThumbnailClicks();
+      // If the recap page is open, update its content
+      if (recapPage.style.display === "block") {
+        openRecapPage();
+      }
     }
 
     /********************************************************
@@ -876,7 +886,6 @@
       openRecapPage();
     });
     function openRecapPage() {
-      // Build the recap list: display photos with overlaid names
       let html = "";
       selectedRestaurants.forEach(sel => {
         html += `
@@ -889,7 +898,7 @@
         `;
       });
       recapList.innerHTML = html;
-      // Add click listener to each recap item to open its details
+      // When a recap item is clicked, open its details page on top of the recap page.
       document.querySelectorAll(".recap-item").forEach(item => {
         item.addEventListener("click", () => {
           const id = item.getAttribute("data-id");
@@ -904,9 +913,8 @@
       document.body.style.overflow = "";
     });
     recapShareBtn.addEventListener("click", () => {
-      // Here you can integrate the Web Share API or custom logic.
+      // Insert your share logic here (e.g., using the Web Share API).
       alert("Sharing your Event Recap! Implement your share logic here.");
-      // For now, we simply close the recap page.
       recapPage.style.display = "none";
       document.body.style.overflow = "";
     });
@@ -945,7 +953,7 @@
      * SEARCH BAR FUNCTIONALITY
     ********************************************************/
     searchIcon.addEventListener("click", () => {
-      // Always force header visible so the search bar is accessible at any scroll position
+      // Ensure header is visible so the search bar appears even if scrolled down.
       header.classList.remove("hidden");
       if (searchContainer.style.display === "none" || !searchContainer.style.display) {
         searchContainer.style.display = "block";
@@ -999,7 +1007,7 @@
     });
 
     /********************************************************
-     * HEADER HIDE ON SCROLL (Skip if search open, details or recap open)
+     * HEADER HIDE ON SCROLL (Skip if search, details, or recap open)
     ********************************************************/
     let lastScrollTop = 0;
     let scrollingTimeout;
