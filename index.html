@@ -25,6 +25,7 @@
       --color-text: #ffffff;     /* White text */
       --color-btn: #B1759F;      /* Add button color */
       --color-added: #2ecc71;    /* Button color when "Added" */
+      --header-height: 60px;     /* Approx height for header top row */
     }
 
     body {
@@ -34,30 +35,37 @@
     }
 
     /***********************************************
-     * HEADER
+     * HEADER + SEARCH (Fixed)
     ***********************************************/
     .header {
       position: fixed;
       top: 0;
       width: 100%;
-      padding: 1.5rem;
       display: flex;
-      align-items: center;
+      flex-direction: column; /* so we can stack brand/icons row & search row */
       background: var(--color-bg);
       z-index: 1000;
       transition: transform 0.3s ease; /* for hiding on scroll */
     }
     .header.hidden {
-      transform: translateY(-100%); /* slide header up when scrolling down */
+      transform: translateY(-100%);
     }
-    .header h1 {
+
+    /* Top row of the header: brand & icons */
+    .header-top {
+      display: flex;
+      align-items: center;
+      height: var(--header-height);
+      padding: 1rem 1.5rem;  /* spacing inside top row */
+    }
+    .header-top h1 {
       font-weight: 700;
       font-size: 24px;
       color: var(--color-text);
       margin: 0;
     }
     .header-icons {
-      margin-left: auto;  /* push icons to the right */
+      margin-left: auto;
       display: flex;
       gap: 1.5rem;
       align-items: center;
@@ -69,28 +77,17 @@
       cursor: pointer;
     }
 
-    /***********************************************
-     * SEARCH BAR
-    ***********************************************/
+    /* The search bar is a second row inside the header, hidden by default */
     .search-container {
-      position: fixed;
-      top: 64px; /* just below header ~60px */
-      left: 0;
-      width: 100%;
-      background: var(--color-bg);
-      padding: 8px;
+      display: none;  /* hidden initially */
+      padding: 8px 1rem;
       border-top: 1px solid #444;
       border-bottom: 1px solid #444;
-      display: none; /* hidden by default */
-      z-index: 999;  
     }
-
     .search-container .search-wrapper {
       position: relative;
-      display: inline-block;
       width: 100%;
     }
-
     .search-container input {
       width: 100%;
       background: #252a2c;
@@ -100,8 +97,7 @@
       padding: 6px 8px;
       font-size: 16px;
     }
-
-    /* "X" clear/close button */
+    /* "X" clear/close button inside the search input */
     .search-clear {
       position: absolute;
       right: 10px;
@@ -119,10 +115,10 @@
     /***********************************************
      * RESTAURANT FLOW
     ***********************************************/
-    /* Reduced margin to bring restaurants closer to header */
+    /* Move down enough to fit header + possible search row */
     .restaurant-flow {
-      margin-top: 100px;      /* was 130, lowered to 100 */
-      padding-bottom: 100px;  /* space for selection bar */
+      margin-top: calc(var(--header-height) + 10px);
+      padding-bottom: 100px; /* space for selection bar */
       transition: margin-top 0.3s ease;
     }
 
@@ -137,13 +133,12 @@
       height: 300px;
       overflow: hidden;
     }
-
     .flow-image {
       width: 100%;
       height: 100%;
       object-fit: cover;
       display: block;
-      cursor: pointer; /* for double-click add */
+      cursor: pointer; /* double-click to add */
     }
 
     /* Gradient Overlay (5 stops) */
@@ -359,22 +354,18 @@
     }
 
     /***********************************************
-      RESTAURANT DETAILS PAGE
+     * RESTAURANT DETAILS PAGE
     ***********************************************/
-    /* We'll fix-position the details page so it
-       doesn't scroll the underlying feed. 
-       Then we set overflow-y: auto here to allow only
-       the details page to scroll. */
     .details-page {
       display: none;
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
-      height: 100vh;
+      height: 100vh;  /* overlay entire screen */
       background: var(--color-bg);
-      z-index: 1200;  /* above the feed but below limit message (2000) */
-      overflow-y: auto; /* user can scroll only this page */
+      z-index: 1200;  
+      overflow-y: auto; /* scroll only the detail page */
     }
     .details-image-container {
       position: relative;
@@ -427,14 +418,13 @@
       z-index: 2;
       opacity: 0.8;
     }
-
     /* Back button => white text, no background */
     .details-back-button {
       position: fixed;
       bottom: 20px;
       left: 20px;
-      background: none; /* no background color */
-      color: #ffffff;   /* white text */
+      background: none;
+      color: #ffffff;
       border: none;
       padding: 0;
       font-weight: 500;
@@ -463,33 +453,106 @@
       line-height: 1.4;
       font-size: 15px;
     }
+
+    /***********************************************
+     * RECAP PAGE (opens on Next)
+    ***********************************************/
+    .recap-page {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100vh;  /* overlay entire screen */
+      background: var(--color-bg);
+      z-index: 1300;  
+      overflow-y: auto; /* scroll only the recap page */
+      padding-bottom: 4rem; /* space for back & done buttons */
+    }
+    .recap-content {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+    .recap-header {
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .recap-header h2 {
+      font-size: 22px;
+      margin-bottom: 0.5rem;
+    }
+    .recap-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .recap-item {
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: #1a1a1a;
+    }
+    .recap-item img {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 2px solid var(--color-btn);
+    }
+    .recap-footer-buttons {
+      position: fixed;
+      bottom: 20px;
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+      left: 0;
+    }
+    .recap-button {
+      background: none;
+      border: 2px solid #fff;
+      color: #fff;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .recap-button:hover {
+      background: #444;
+    }
+
   </style>
 </head>
 <body>
-  <!-- HEADER -->
+  <!-- HEADER (fixed) -->
   <div class="header" id="mainHeader">
-    <h1>Rizzerv</h1>
-    <div class="header-icons">
-      <img src="filter-list-svgrepo-com.svg" alt="Filter" class="header-icon" id="filterIcon" />
-      <img src="magnifying-glass-backup-svgrepo-com.svg" alt="Search" class="header-icon" id="searchIcon" />
+    <!-- Top row: brand + icons -->
+    <div class="header-top">
+      <h1>Rizzerv</h1>
+      <div class="header-icons">
+        <img src="filter-list-svgrepo-com.svg" alt="Filter" class="header-icon" id="filterIcon" />
+        <img src="magnifying-glass-backup-svgrepo-com.svg" alt="Search" class="header-icon" id="searchIcon" />
+      </div>
+    </div>
+    <!-- Search bar row (hidden initially) -->
+    <div class="search-container" id="searchContainer">
+      <div class="search-wrapper">
+        <input type="text" id="searchInput" placeholder="Search restaurants..." />
+        <span class="search-clear" id="searchClearBtn">&times;</span>
+      </div>
     </div>
   </div>
 
-  <!-- SEARCH BAR -->
-  <div class="search-container" id="searchContainer">
-    <div class="search-wrapper">
-      <input type="text" id="searchInput" placeholder="Search restaurants..." />
-      <span class="search-clear" id="searchClearBtn">&times;</span>
-    </div>
-  </div>
-
-  <!-- LIMIT MESSAGE -->
+  <!-- "Limit reached!" Message -->
   <div class="limit-message" id="limitMessage">Limit reached!</div>
 
-  <!-- RESTAURANT FLOW -->
+  <!-- Restaurant Flow container -->
   <div class="restaurant-flow" id="restaurantFlow"></div>
 
-  <!-- SELECTION BAR -->
+  <!-- Selection Bar (bottom) -->
   <div class="selection-bar">
     <div class="thumbnail-container" id="thumbnailContainer"></div>
     <button class="next-button" id="nextButton">Next</button>
@@ -499,11 +562,9 @@
   <div class="filter-card-overlay" id="filterOverlay">
     <div class="filter-card">
       <h2>Filter Options</h2>
-      <!-- Type => short descriptions -->
       <label for="typeSelect">Type (Multi-Select)</label>
       <select id="typeSelect" size="5" multiple></select>
 
-      <!-- Mentioned in => source1 -->
       <label for="sourceSelect">Mentioned in (Multi-Select)</label>
       <select id="sourceSelect" size="5" multiple></select>
 
@@ -528,6 +589,21 @@
     <button class="details-add-button" id="detailsAddButton">Add</button>
   </div>
 
+  <!-- RECAP PAGE -->
+  <div class="recap-page" id="recapPage">
+    <div class="recap-content">
+      <div class="recap-header">
+        <h2>Your Selection</h2>
+        <p id="recapSubtitle">These are your chosen restaurants:</p>
+      </div>
+      <div class="recap-list" id="recapList"></div>
+    </div>
+    <div class="recap-footer-buttons">
+      <button class="recap-button" id="recapBackBtn">Back</button>
+      <button class="recap-button" id="recapDoneBtn">Done</button>
+    </div>
+  </div>
+
   <script>
     /********************************************************
      * GLOBAL DATA & CONSTANTS
@@ -538,10 +614,11 @@
     let currentDisplayedIndices = [];
 
     // For searching
-    let activeSearchTerm = ""; // store current query so we don't lose the results on hide
+    let activeSearchTerm = "";
 
     // DOM references
     const header = document.getElementById("mainHeader");
+    const headerTop = document.querySelector(".header-top");
     const searchContainer = document.getElementById("searchContainer");
     const searchInput = document.getElementById("searchInput");
     const searchClearBtn = document.getElementById("searchClearBtn");
@@ -556,7 +633,7 @@
     const typeSelect = document.getElementById("typeSelect");
     const sourceSelect = document.getElementById("sourceSelect");
 
-    // Details Page references
+    // Details Page
     const detailsPage = document.getElementById("detailsPage");
     const detailsImage = document.getElementById("detailsImage");
     const detailsName = document.getElementById("detailsName");
@@ -564,6 +641,12 @@
     const detailsContent = document.getElementById("detailsContent");
     const detailsBackButton = document.getElementById("detailsBackButton");
     const detailsAddButton = document.getElementById("detailsAddButton");
+
+    // Recap Page
+    const recapPage = document.getElementById("recapPage");
+    const recapList = document.getElementById("recapList");
+    const recapBackBtn = document.getElementById("recapBackBtn");
+    const recapDoneBtn = document.getElementById("recapDoneBtn");
 
     // Icons
     const searchIcon = document.getElementById("searchIcon");
@@ -645,7 +728,11 @@
 
       let mentionLine = "";
       if (restaurant.source1) {
-        mentionLine = `<div class="flow-mention">Mentioned in ${restaurant.source1}</div>`;
+        mentionLine = `
+          <div class="flow-mention">
+            Mentioned in ${restaurant.source1}
+          </div>
+        `;
       }
 
       return `
@@ -740,8 +827,7 @@
       const rData = allRestaurants[itemId];
       if (!rData) return;
 
-      // Lock body scrolling so only details page can scroll
-      document.body.style.overflow = "hidden";
+      document.body.style.overflow = "hidden"; /* disable feed scroll */
 
       detailsImage.src = rData.photo_1 || "";
       detailsName.textContent = rData.name || "";
@@ -766,7 +852,6 @@
       }
       detailsAddButton.setAttribute("data-id", itemId);
 
-      // Show detail page
       detailsPage.style.display = "block";
     }
 
@@ -776,7 +861,6 @@
 
     function closeRestaurantDetails() {
       detailsPage.style.display = "none";
-      // Restore feed scrolling
       document.body.style.overflow = "";
     }
 
@@ -808,14 +892,48 @@
       document.querySelectorAll(".selection-thumbnail").forEach((thumb) => {
         thumb.addEventListener("click", () => {
           const id = thumb.getAttribute("data-id");
-          // Instead of scrolling in feed => open details page
+          // Instead of scrolling => open detail page
           openRestaurantDetails(id);
         });
       });
     }
 
+    /********************************************************
+     * NEXT BUTTON => RECAP PAGE
+    ********************************************************/
     nextButton.addEventListener("click", () => {
-      alert("Next button clicked! Implement your own logic here.");
+      openRecapPage();
+    });
+
+    function openRecapPage() {
+      // Build a list of selected restaurants
+      let html = "";
+      selectedRestaurants.forEach((sel) => {
+        html += `
+          <div class="recap-item">
+            <img src="${sel.image}" alt="${sel.name}" />
+            <div>
+              <div><strong>${sel.name}</strong></div>
+            </div>
+          </div>
+        `;
+      });
+      recapList.innerHTML = html;
+
+      // Show recap overlay
+      recapPage.style.display = "block";
+      document.body.style.overflow = "hidden"; // disable feed scroll behind recap
+    }
+
+    recapBackBtn.addEventListener("click", () => {
+      recapPage.style.display = "none";
+      document.body.style.overflow = "";
+    });
+
+    recapDoneBtn.addEventListener("click", () => {
+      alert("You clicked Done! Implement your custom logic (e.g. share link) here.");
+      recapPage.style.display = "none";
+      document.body.style.overflow = "";
     });
 
     /********************************************************
@@ -853,12 +971,10 @@
     }
 
     /********************************************************
-     * SEARCH BAR FUNCTIONALITIES (standard)
+     * SEARCH BAR: Show/Hide inside header
     ********************************************************/
-    // Show/hide search bar on icon click
-    searchIcon.addEventListener("click", (e) => {
-      e.stopPropagation();
-      if (searchContainer.style.display === "none" || !searchContainer.style.display) {
+    searchIcon.addEventListener("click", () => {
+      if (searchContainer.style.display === "none") {
         searchContainer.style.display = "block";
         searchInput.focus();
       } else {
@@ -866,48 +982,45 @@
       }
     });
 
-    // "X" button => hide & revert to all
+    // "X" => clear input + revert to full list
     searchClearBtn.addEventListener("click", () => {
-      // Clear the input
       searchInput.value = "";
       activeSearchTerm = "";
-      // Render all restaurants
       renderRestaurants(allRestaurants);
       hideSearchBar(false); 
     });
 
-    // If user clicks outside => hide, keep the results (if typed)
+    // Hide the search bar if user clicks outside
     document.addEventListener("click", (e) => {
-      if (searchContainer.style.display === "block" &&
-          !searchContainer.contains(e.target) &&
-          e.target !== searchIcon
+      if (
+        searchContainer.style.display === "block" &&
+        !searchContainer.contains(e.target) &&
+        e.target !== searchIcon &&
+        !headerTop.contains(e.target)
       ) {
-        hideSearchBar(true); // keep results
-      }
-    });
-
-    // Hide search bar on scroll, keep results
-    window.addEventListener("scroll", () => {
-      if (searchContainer.style.display === "block") {
-        hideSearchBar(true); // keep results
-      }
-    });
-
-    // Listen for Enter => hide search but keep results
-    searchInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault(); // prevent form submission or page refresh
         hideSearchBar(true);
       }
     });
 
-    // Hide the search bar
-    // "keepResults" => if true, do not revert to all; if false, revert to all
+    // Hide bar on scroll => keep results
+    window.addEventListener("scroll", () => {
+      if (searchContainer.style.display === "block") {
+        hideSearchBar(true);
+      }
+    });
+
+    // Press Enter => hide search, keep results
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        hideSearchBar(true);
+      }
+    });
+
     function hideSearchBar(keepResults) {
       if (searchContainer.style.display === "none") return;
       searchContainer.style.display = "none";
       if (!keepResults) {
-        // revert to all
         activeSearchTerm = "";
         renderRestaurants(allRestaurants);
       }
@@ -915,14 +1028,14 @@
 
     // Live-filter as user types
     searchInput.addEventListener("input", (e) => {
-      const searchTerm = e.target.value.trim().toLowerCase();
-      activeSearchTerm = searchTerm;
-      if (!searchTerm) {
+      const val = e.target.value.trim().toLowerCase();
+      activeSearchTerm = val;
+      if (!val) {
         renderRestaurants(allRestaurants);
         return;
       }
       const filtered = allRestaurants.filter((r) => {
-        return r.name && r.name.toLowerCase().includes(searchTerm);
+        return r.name && r.name.toLowerCase().includes(val);
       });
       renderRestaurants(filtered);
     });
@@ -934,8 +1047,8 @@
     let scrollingTimeout;
 
     window.addEventListener("scroll", () => {
-      // If details page is open, do not hide header
-      if (detailsPage.style.display === "block") return;
+      // If details or recap page open, do not hide header
+      if (detailsPage.style.display === "block" || recapPage.style.display === "block") return;
 
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       if (scrollTop > lastScrollTop) {
