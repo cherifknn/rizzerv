@@ -30,7 +30,7 @@
     body {
       background: var(--color-bg);
       color: var(--color-text);
-      overflow-x: hidden; /* to prevent horizontal scrolling */
+      overflow-x: hidden; /* prevent horizontal scrolling */
     }
 
     /***********************************************
@@ -70,7 +70,7 @@
     }
 
     /***********************************************
-     * SEARCH BAR (standard behavior)
+     * SEARCH BAR
     ***********************************************/
     .search-container {
       position: fixed;
@@ -101,7 +101,7 @@
       font-size: 16px;
     }
 
-    /* "X" close/clear button for the search bar */
+    /* "X" clear/close button */
     .search-clear {
       position: absolute;
       right: 10px;
@@ -119,8 +119,9 @@
     /***********************************************
      * RESTAURANT FLOW
     ***********************************************/
+    /* Reduced margin to bring restaurants closer to header */
     .restaurant-flow {
-      margin-top: 130px;      /* Enough space for header + search bar */
+      margin-top: 100px;      /* was 130, lowered to 100 */
       padding-bottom: 100px;  /* space for selection bar */
       transition: margin-top 0.3s ease;
     }
@@ -142,7 +143,7 @@
       height: 100%;
       object-fit: cover;
       display: block;
-      cursor: pointer; /* for double-click */
+      cursor: pointer; /* for double-click add */
     }
 
     /* Gradient Overlay (5 stops) */
@@ -172,7 +173,7 @@
       color: var(--color-text);
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
       z-index: 2;
-      cursor: pointer; /* clickable => open detail page */
+      cursor: pointer; /* opens detail page */
     }
 
     .flow-mention {
@@ -360,16 +361,20 @@
     /***********************************************
       RESTAURANT DETAILS PAGE
     ***********************************************/
+    /* We'll fix-position the details page so it
+       doesn't scroll the underlying feed. 
+       Then we set overflow-y: auto here to allow only
+       the details page to scroll. */
     .details-page {
-      display: none;  /* hidden by default */
+      display: none;
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
-      min-height: 100vh;
+      height: 100vh;
       background: var(--color-bg);
-      z-index: 1200;  /* above the flow but under the limit message (2000) */
-      overflow-y: auto;
+      z-index: 1200;  /* above the feed but below limit message (2000) */
+      overflow-y: auto; /* user can scroll only this page */
     }
     .details-image-container {
       position: relative;
@@ -529,8 +534,11 @@
     ********************************************************/
     const MAX_SELECTION = 4;
     let selectedRestaurants = []; // {id, name, image}
-    let allRestaurants = [];      // CSV data
+    let allRestaurants = [];
     let currentDisplayedIndices = [];
+
+    // For searching
+    let activeSearchTerm = ""; // store current query so we don't lose the results on hide
 
     // DOM references
     const header = document.getElementById("mainHeader");
@@ -617,7 +625,7 @@
       currentDisplayedIndices = [];
       dataArr.forEach((row) => {
         const originalIndex = allRestaurants.indexOf(row);
-        if (originalIndex < 0) return; 
+        if (originalIndex < 0) return;
         html += generateFlowItemHTML(row, originalIndex);
         currentDisplayedIndices.push(originalIndex);
       });
@@ -637,11 +645,7 @@
 
       let mentionLine = "";
       if (restaurant.source1) {
-        mentionLine = `
-          <div class="flow-mention">
-            Mentioned in ${restaurant.source1}
-          </div>
-        `;
+        mentionLine = `<div class="flow-mention">Mentioned in ${restaurant.source1}</div>`;
       }
 
       return `
@@ -681,7 +685,7 @@
 
       const existing = selectedRestaurants.find((r) => r.id === itemId);
       if (existing) {
-        // Remove from selection
+        // Remove
         selectedRestaurants = selectedRestaurants.filter((r) => r.id !== itemId);
         if (buttonElem) {
           buttonElem.classList.remove("added");
@@ -735,6 +739,10 @@
     function openRestaurantDetails(itemId) {
       const rData = allRestaurants[itemId];
       if (!rData) return;
+
+      // Lock body scrolling so only details page can scroll
+      document.body.style.overflow = "hidden";
+
       detailsImage.src = rData.photo_1 || "";
       detailsName.textContent = rData.name || "";
       detailsMention.textContent = rData.source1 ? `Mentioned in ${rData.source1}` : "";
@@ -744,7 +752,6 @@
       const descLong = rData.description_long || "";
       html += `<p class="details-field"><strong>Neighborhood:</strong> ${rData.neighborhood || "N/A"}</p>`;
       html += `<p class="details-field"><strong>Category:</strong> ${rData.category || "N/A"}</p>`;
-      // Full description
       html += `<p class="details-field">${descLong}</p>`;
       detailsContent.innerHTML = html;
 
@@ -764,8 +771,14 @@
     }
 
     detailsBackButton.addEventListener("click", () => {
-      detailsPage.style.display = "none";
+      closeRestaurantDetails();
     });
+
+    function closeRestaurantDetails() {
+      detailsPage.style.display = "none";
+      // Restore feed scrolling
+      document.body.style.overflow = "";
+    }
 
     detailsAddButton.addEventListener("click", (e) => {
       const itemId = e.target.getAttribute("data-id");
@@ -794,25 +807,11 @@
     function attachThumbnailClicks() {
       document.querySelectorAll(".selection-thumbnail").forEach((thumb) => {
         thumb.addEventListener("click", () => {
-          const id = parseInt(thumb.getAttribute("data-id"), 10);
-          // If not displayed => show all
-          if (!currentDisplayedIndices.includes(id)) {
-            renderRestaurants(allRestaurants);
-            setTimeout(() => {
-              scrollToFlowItem(id);
-            }, 50);
-          } else {
-            scrollToFlowItem(id);
-          }
+          const id = thumb.getAttribute("data-id");
+          // Instead of scrolling in feed => open details page
+          openRestaurantDetails(id);
         });
       });
-    }
-
-    function scrollToFlowItem(id) {
-      const target = document.querySelector(`.flow-item[data-id="${id}"]`);
-      if (target) {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
     }
 
     nextButton.addEventListener("click", () => {
@@ -856,51 +855,68 @@
     /********************************************************
      * SEARCH BAR FUNCTIONALITIES (standard)
     ********************************************************/
-    // Show/hide the search bar on icon click
+    // Show/hide search bar on icon click
     searchIcon.addEventListener("click", (e) => {
       e.stopPropagation();
       if (searchContainer.style.display === "none" || !searchContainer.style.display) {
         searchContainer.style.display = "block";
         searchInput.focus();
       } else {
-        hideSearchBar();
+        hideSearchBar(false); 
       }
     });
 
-    // "X" button => hide search bar
+    // "X" button => hide & revert to all
     searchClearBtn.addEventListener("click", () => {
-      hideSearchBar();
+      // Clear the input
+      searchInput.value = "";
+      activeSearchTerm = "";
+      // Render all restaurants
+      renderRestaurants(allRestaurants);
+      hideSearchBar(false); 
     });
 
-    // If user clicks outside the search container => hide
+    // If user clicks outside => hide, keep the results (if typed)
     document.addEventListener("click", (e) => {
-      if (
-        searchContainer.style.display === "block" &&
-        !searchContainer.contains(e.target) &&
-        e.target !== searchIcon
+      if (searchContainer.style.display === "block" &&
+          !searchContainer.contains(e.target) &&
+          e.target !== searchIcon
       ) {
-        hideSearchBar();
+        hideSearchBar(true); // keep results
       }
     });
 
-    // As soon as user scrolls => hide search bar
+    // Hide search bar on scroll, keep results
     window.addEventListener("scroll", () => {
       if (searchContainer.style.display === "block") {
-        hideSearchBar();
+        hideSearchBar(true); // keep results
       }
     });
 
-    // Hide the search bar => reset input & restore full list
-    function hideSearchBar() {
+    // Listen for Enter => hide search but keep results
+    searchInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault(); // prevent form submission or page refresh
+        hideSearchBar(true);
+      }
+    });
+
+    // Hide the search bar
+    // "keepResults" => if true, do not revert to all; if false, revert to all
+    function hideSearchBar(keepResults) {
       if (searchContainer.style.display === "none") return;
       searchContainer.style.display = "none";
-      searchInput.value = "";
-      renderRestaurants(allRestaurants);
+      if (!keepResults) {
+        // revert to all
+        activeSearchTerm = "";
+        renderRestaurants(allRestaurants);
+      }
     }
 
-    // Live-filter restaurants as user types
+    // Live-filter as user types
     searchInput.addEventListener("input", (e) => {
       const searchTerm = e.target.value.trim().toLowerCase();
+      activeSearchTerm = searchTerm;
       if (!searchTerm) {
         renderRestaurants(allRestaurants);
         return;
@@ -912,7 +928,7 @@
     });
 
     /********************************************************
-     * HEADER DISAPPEARS WHEN SCROLLING DOWN, REAPPEARS ON UP
+     * HEADER DISAPPEARS WHEN SCROLLING, REAPPEARS ON STOP/UP
     ********************************************************/
     let lastScrollTop = 0;
     let scrollingTimeout;
