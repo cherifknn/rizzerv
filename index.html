@@ -30,9 +30,12 @@
     body {
       background: var(--color-bg);
       color: var(--color-text);
+      overflow-x: hidden; /* to prevent horizontal scrolling */
     }
 
-    /* Header */
+    /***********************************************
+     * HEADER
+    ***********************************************/
     .header {
       position: fixed;
       top: 0;
@@ -45,7 +48,7 @@
       transition: transform 0.3s ease; /* for hiding on scroll */
     }
     .header.hidden {
-      transform: translateY(-100%); /* hide header by moving upward */
+      transform: translateY(-100%); /* slide header up when scrolling down */
     }
     .header h1 {
       font-weight: 700;
@@ -53,7 +56,6 @@
       color: var(--color-text);
       margin: 0;
     }
-
     .header-icons {
       margin-left: auto;  /* push icons to the right */
       display: flex;
@@ -67,10 +69,12 @@
       cursor: pointer;
     }
 
-    /* Search Bar (full width, fixed below the header) */
+    /***********************************************
+     * SEARCH BAR (standard behavior)
+    ***********************************************/
     .search-container {
       position: fixed;
-      top: 60px; /* just below the header's default 60px-ish height */
+      top: 64px; /* just below header ~60px */
       left: 0;
       width: 100%;
       background: var(--color-bg);
@@ -78,8 +82,15 @@
       border-top: 1px solid #444;
       border-bottom: 1px solid #444;
       display: none; /* hidden by default */
-      z-index: 999;  /* just under the header (1000) so it stays visible */
+      z-index: 999;  
     }
+
+    .search-container .search-wrapper {
+      position: relative;
+      display: inline-block;
+      width: 100%;
+    }
+
     .search-container input {
       width: 100%;
       background: #252a2c;
@@ -90,11 +101,28 @@
       font-size: 16px;
     }
 
-    /* Restaurant Flow container
-       - we add extra top margin to account for header height + search bar */
+    /* "X" close/clear button for the search bar */
+    .search-clear {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #aaa;
+      font-size: 18px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .search-clear:hover {
+      color: #fff;
+    }
+
+    /***********************************************
+     * RESTAURANT FLOW
+    ***********************************************/
     .restaurant-flow {
-      margin-top: 120px;  /* 60px header + ~60px search container area */
-      padding-bottom: 100px; /* account for selection bar at bottom */
+      margin-top: 130px;      /* Enough space for header + search bar */
+      padding-bottom: 100px;  /* space for selection bar */
+      transition: margin-top 0.3s ease;
     }
 
     .flow-item {
@@ -114,6 +142,7 @@
       height: 100%;
       object-fit: cover;
       display: block;
+      cursor: pointer; /* for double-click */
     }
 
     /* Gradient Overlay (5 stops) */
@@ -143,6 +172,7 @@
       color: var(--color-text);
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
       z-index: 2;
+      cursor: pointer; /* clickable => open detail page */
     }
 
     .flow-mention {
@@ -167,7 +197,7 @@
       z-index: 2;
     }
 
-    /* The "Add" button: updated corner radius to 12px */
+    /* "Add" button => corner radius 12px */
     .add-button {
       position: absolute;
       bottom: 20px;
@@ -176,7 +206,7 @@
       color: var(--color-text);
       border: none;
       padding: 12px 24px;
-      border-radius: 12px; /* updated */
+      border-radius: 12px;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -186,7 +216,6 @@
       background: var(--color-added);
     }
 
-    /* Descriptions below the image */
     .flow-content {
       padding: 1rem 1.5rem;
     }
@@ -201,7 +230,9 @@
       line-height: 1.4;
     }
 
-    /* Selection Bar at bottom */
+    /***********************************************
+     * SELECTION BAR (Bottom)
+    ***********************************************/
     .selection-bar {
       position: fixed;
       bottom: 20px;
@@ -216,7 +247,6 @@
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
       z-index: 1001;
     }
-
     .thumbnail-container {
       display: flex;
       gap: 0.5rem;
@@ -241,7 +271,9 @@
       cursor: pointer;
     }
 
-    /* Limit message bubble (>4 selections) */
+    /***********************************************
+     * LIMIT MESSAGE BUBBLE
+    ***********************************************/
     .limit-message {
       position: fixed;
       top: 50%;
@@ -258,7 +290,7 @@
     }
 
     /***********************************************
-      FILTER CARD - Dark theme
+     * FILTER CARD - Dark theme
     ***********************************************/
     .filter-card-overlay {
       display: none;            
@@ -267,7 +299,7 @@
       left: 0;
       width: 100vw;
       height: 100vh;
-      background: rgba(0,0,0,0.7); /* semi-transparent backdrop */
+      background: rgba(0,0,0,0.7); 
       z-index: 2000;
       align-items: center;
       justify-content: center;
@@ -324,10 +356,112 @@
       color: #fff;
       border: 1px solid #fff;
     }
+
+    /***********************************************
+      RESTAURANT DETAILS PAGE
+    ***********************************************/
+    .details-page {
+      display: none;  /* hidden by default */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      min-height: 100vh;
+      background: var(--color-bg);
+      z-index: 1200;  /* above the flow but under the limit message (2000) */
+      overflow-y: auto;
+    }
+    .details-image-container {
+      position: relative;
+      width: 100%;
+      height: 300px;
+      overflow: hidden;
+    }
+    .details-image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .details-gradient-overlay {
+      position: absolute;
+      top: 0; 
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      background: linear-gradient(
+        to bottom,
+        rgba(13,21,23,1) 0%,
+        rgba(13,21,23,0.48) 31%,
+        rgba(255,255,255,0) 51%,
+        rgba(13,21,23,0.32) 84%,
+        rgba(13,21,23,1) 100%
+      );
+    }
+    .details-content {
+      padding: 1rem 1.5rem 4rem; /* bottom padding for the floating buttons */
+    }
+    .details-name {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--color-text);
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      z-index: 2;
+    }
+    .details-mention {
+      position: absolute;
+      top: 42px;
+      left: 20px;
+      font-size: 14px;
+      color: var(--color-text);
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+      z-index: 2;
+      opacity: 0.8;
+    }
+
+    /* Back button => white text, no background */
+    .details-back-button {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: none; /* no background color */
+      color: #ffffff;   /* white text */
+      border: none;
+      padding: 0;
+      font-weight: 500;
+      font-size: 18px;
+      cursor: pointer;
+      z-index: 2;
+    }
+    .details-add-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--color-btn);
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      z-index: 2;
+    }
+    .details-add-button.added {
+      background: var(--color-added);
+    }
+    .details-field {
+      margin: 0.5rem 0;
+      line-height: 1.4;
+      font-size: 15px;
+    }
   </style>
 </head>
 <body>
-  <!-- Header -->
+  <!-- HEADER -->
   <div class="header" id="mainHeader">
     <h1>Rizzerv</h1>
     <div class="header-icons">
@@ -336,18 +470,21 @@
     </div>
   </div>
 
-  <!-- Full-width Search Bar -->
+  <!-- SEARCH BAR -->
   <div class="search-container" id="searchContainer">
-    <input type="text" id="searchInput" placeholder="Search restaurants..." />
+    <div class="search-wrapper">
+      <input type="text" id="searchInput" placeholder="Search restaurants..." />
+      <span class="search-clear" id="searchClearBtn">&times;</span>
+    </div>
   </div>
 
-  <!-- "Limit reached!" Message -->
+  <!-- LIMIT MESSAGE -->
   <div class="limit-message" id="limitMessage">Limit reached!</div>
 
-  <!-- Flow Container -->
+  <!-- RESTAURANT FLOW -->
   <div class="restaurant-flow" id="restaurantFlow"></div>
 
-  <!-- Selection Bar -->
+  <!-- SELECTION BAR -->
   <div class="selection-bar">
     <div class="thumbnail-container" id="thumbnailContainer"></div>
     <button class="next-button" id="nextButton">Next</button>
@@ -372,14 +509,34 @@
     </div>
   </div>
 
+  <!-- RESTAURANT DETAILS PAGE -->
+  <div class="details-page" id="detailsPage">
+    <div class="details-image-container" id="detailsImageContainer">
+      <img src="" alt="Restaurant detail" class="details-image" id="detailsImage" />
+      <div class="details-gradient-overlay"></div>
+      <h2 class="details-name" id="detailsName"></h2>
+      <div class="details-mention" id="detailsMention"></div>
+    </div>
+    <div class="details-content" id="detailsContent"></div>
+    <!-- Floating Buttons (Back & Add) -->
+    <button class="details-back-button" id="detailsBackButton">Back</button>
+    <button class="details-add-button" id="detailsAddButton">Add</button>
+  </div>
+
   <script>
+    /********************************************************
+     * GLOBAL DATA & CONSTANTS
+    ********************************************************/
     const MAX_SELECTION = 4;
-    let selectedRestaurants = [];
-    let allRestaurants = [];
-    let currentDisplayedIndices = []; // which restaurant indices are displayed
+    let selectedRestaurants = []; // {id, name, image}
+    let allRestaurants = [];      // CSV data
+    let currentDisplayedIndices = [];
 
     // DOM references
     const header = document.getElementById("mainHeader");
+    const searchContainer = document.getElementById("searchContainer");
+    const searchInput = document.getElementById("searchInput");
+    const searchClearBtn = document.getElementById("searchClearBtn");
     const restaurantFlow = document.getElementById("restaurantFlow");
     const thumbnailContainer = document.getElementById("thumbnailContainer");
     const nextButton = document.getElementById("nextButton");
@@ -391,14 +548,21 @@
     const typeSelect = document.getElementById("typeSelect");
     const sourceSelect = document.getElementById("sourceSelect");
 
-    // SEARCH DOM references
+    // Details Page references
+    const detailsPage = document.getElementById("detailsPage");
+    const detailsImage = document.getElementById("detailsImage");
+    const detailsName = document.getElementById("detailsName");
+    const detailsMention = document.getElementById("detailsMention");
+    const detailsContent = document.getElementById("detailsContent");
+    const detailsBackButton = document.getElementById("detailsBackButton");
+    const detailsAddButton = document.getElementById("detailsAddButton");
+
+    // Icons
     const searchIcon = document.getElementById("searchIcon");
-    const searchContainer = document.getElementById("searchContainer");
-    const searchInput = document.getElementById("searchInput");
 
     /********************************************************
-     * Show/hide limit message
-     ********************************************************/
+     * SHOW/HIDE "LIMIT REACHED!" MESSAGE
+    ********************************************************/
     function showLimitMessage() {
       limitMessage.style.display = "block";
       setTimeout(() => {
@@ -407,26 +571,64 @@
     }
 
     /********************************************************
-     * Render and update restaurants
-     ********************************************************/
+     * FETCH CSV => STORE => POPULATE FILTER => RENDER
+    ********************************************************/
+    fetch("restaurants.csv")
+      .then((resp) => resp.text())
+      .then((csv) => {
+        const parsed = Papa.parse(csv, { header: true });
+        allRestaurants = parsed.data.filter(r => r.name);
+        populateFilterOptions();
+        renderRestaurants(allRestaurants);
+      })
+      .catch((err) => console.error(err));
+
+    function populateFilterOptions() {
+      const shortSet = new Set();
+      const sourceSet = new Set();
+
+      allRestaurants.forEach((r) => {
+        if (r.description_short) shortSet.add(r.description_short);
+        if (r.source1) sourceSet.add(r.source1);
+      });
+
+      typeSelect.innerHTML = "";
+      sourceSelect.innerHTML = "";
+
+      shortSet.forEach((val) => {
+        const opt = document.createElement("option");
+        opt.value = val;
+        opt.textContent = val;
+        typeSelect.appendChild(opt);
+      });
+      sourceSet.forEach((val) => {
+        const opt = document.createElement("option");
+        opt.value = val;
+        opt.textContent = val;
+        sourceSelect.appendChild(opt);
+      });
+    }
+
+    /********************************************************
+     * MAIN RENDERING OF RESTAURANT FLOW
+    ********************************************************/
     function renderRestaurants(dataArr) {
       let html = "";
       currentDisplayedIndices = [];
       dataArr.forEach((row) => {
         const originalIndex = allRestaurants.indexOf(row);
-        // skip if row is invalid
-        if (!row.name || originalIndex < 0) return;
-
+        if (originalIndex < 0) return; 
         html += generateFlowItemHTML(row, originalIndex);
         currentDisplayedIndices.push(originalIndex);
       });
       restaurantFlow.innerHTML = html;
       attachAddButtons();
+      attachNameClicks();
+      attachPhotoDblclick();
     }
 
     function generateFlowItemHTML(restaurant, index) {
-      // Price range is a placeholder
-      const priceRange = "$60-$80";
+      const priceRange = "$60-$80"; // placeholder
       const shortDesc = restaurant.description_short || "";
 
       let longDesc = restaurant.description_long || "";
@@ -460,43 +662,140 @@
       `;
     }
 
+    /********************************************************
+     * ADD BUTTON HANDLING
+    ********************************************************/
     function attachAddButtons() {
-      document.querySelectorAll(".add-button").forEach((button) => {
+      document.querySelectorAll(".flow-item .add-button").forEach((button) => {
         button.addEventListener("click", (e) => {
           const item = e.target.closest(".flow-item");
-          const itemId = item.getAttribute("data-id"); 
-          const name = item.querySelector(".flow-name").textContent;
-          const image = item.querySelector(".flow-image").src;
-
-          // Check if already selected
-          const existing = selectedRestaurants.find((r) => r.id === itemId);
-
-          if (existing) {
-            // Remove
-            selectedRestaurants = selectedRestaurants.filter((r) => r.id !== itemId);
-            button.classList.remove("added");
-            button.textContent = "Add";
-          } else {
-            // Add if under limit
-            if (selectedRestaurants.length >= MAX_SELECTION) {
-              showLimitMessage();
-              return;
-            }
-            selectedRestaurants.push({ id: itemId, name, image });
-            button.classList.add("added");
-            button.textContent = "Added";
-          }
-          updateSelectionBar();
-          attachThumbnailClicks();
+          const itemId = item.getAttribute("data-id");
+          toggleRestaurantInSelection(itemId, button);
         });
       });
+    }
+
+    function toggleRestaurantInSelection(itemId, buttonElem) {
+      const rData = allRestaurants[itemId];
+      if (!rData) return;
+
+      const existing = selectedRestaurants.find((r) => r.id === itemId);
+      if (existing) {
+        // Remove from selection
+        selectedRestaurants = selectedRestaurants.filter((r) => r.id !== itemId);
+        if (buttonElem) {
+          buttonElem.classList.remove("added");
+          buttonElem.textContent = "Add";
+        }
+      } else {
+        // Add if under limit
+        if (selectedRestaurants.length >= MAX_SELECTION) {
+          showLimitMessage();
+          return;
+        }
+        selectedRestaurants.push({ id: itemId, name: rData.name, image: rData.photo_1 });
+        if (buttonElem) {
+          buttonElem.classList.add("added");
+          buttonElem.textContent = "Added";
+        }
+      }
+      updateSelectionBar();
+      attachThumbnailClicks();
+    }
+
+    /********************************************************
+     * DOUBLE TAP (DOUBLE-CLICK) ON PHOTO => ADD
+    ********************************************************/
+    function attachPhotoDblclick() {
+      document.querySelectorAll(".flow-item .flow-image").forEach((img) => {
+        img.addEventListener("dblclick", (e) => {
+          const item = e.target.closest(".flow-item");
+          if (!item) return;
+          const itemId = item.getAttribute("data-id");
+          const addBtn = item.querySelector(".add-button");
+          toggleRestaurantInSelection(itemId, addBtn);
+        });
+      });
+    }
+
+    /********************************************************
+     * CLICK ON RESTAURANT NAME => OPEN DETAILS PAGE
+    ********************************************************/
+    function attachNameClicks() {
+      document.querySelectorAll(".flow-item .flow-name").forEach((nameEl) => {
+        nameEl.addEventListener("click", (e) => {
+          const item = e.target.closest(".flow-item");
+          if (!item) return;
+          const itemId = item.getAttribute("data-id");
+          openRestaurantDetails(itemId);
+        });
+      });
+    }
+
+    function openRestaurantDetails(itemId) {
+      const rData = allRestaurants[itemId];
+      if (!rData) return;
+      detailsImage.src = rData.photo_1 || "";
+      detailsName.textContent = rData.name || "";
+      detailsMention.textContent = rData.source1 ? `Mentioned in ${rData.source1}` : "";
+
+      // Build the content with more fields from CSV
+      let html = "";
+      const descLong = rData.description_long || "";
+      html += `<p class="details-field"><strong>Neighborhood:</strong> ${rData.neighborhood || "N/A"}</p>`;
+      html += `<p class="details-field"><strong>Category:</strong> ${rData.category || "N/A"}</p>`;
+      // Full description
+      html += `<p class="details-field">${descLong}</p>`;
+      detailsContent.innerHTML = html;
+
+      // Check if in selection => adjust "Add" button
+      const existing = selectedRestaurants.find((r) => r.id === itemId);
+      if (existing) {
+        detailsAddButton.classList.add("added");
+        detailsAddButton.textContent = "Added";
+      } else {
+        detailsAddButton.classList.remove("added");
+        detailsAddButton.textContent = "Add";
+      }
+      detailsAddButton.setAttribute("data-id", itemId);
+
+      // Show detail page
+      detailsPage.style.display = "block";
+    }
+
+    detailsBackButton.addEventListener("click", () => {
+      detailsPage.style.display = "none";
+    });
+
+    detailsAddButton.addEventListener("click", (e) => {
+      const itemId = e.target.getAttribute("data-id");
+      if (!itemId) return;
+      toggleRestaurantInSelection(itemId, detailsAddButton);
+    });
+
+    /********************************************************
+     * SELECTION BAR (Bottom Thumbnails)
+    ********************************************************/
+    function updateSelectionBar() {
+      thumbnailContainer.innerHTML = selectedRestaurants
+        .map(
+          (r) => `<img src="${r.image}" data-id="${r.id}" 
+                    class="selection-thumbnail" alt="${r.name}">`
+        )
+        .join("");
+
+      if (selectedRestaurants.length > 0) {
+        nextButton.style.display = "inline-block";
+      } else {
+        nextButton.style.display = "none";
+      }
     }
 
     function attachThumbnailClicks() {
       document.querySelectorAll(".selection-thumbnail").forEach((thumb) => {
         thumb.addEventListener("click", () => {
           const id = parseInt(thumb.getAttribute("data-id"), 10);
-          // If this ID isn't currently displayed => reset to ALL
+          // If not displayed => show all
           if (!currentDisplayedIndices.includes(id)) {
             renderRestaurants(allRestaurants);
             setTimeout(() => {
@@ -516,22 +815,6 @@
       }
     }
 
-    function updateSelectionBar() {
-      thumbnailContainer.innerHTML = selectedRestaurants
-        .map(
-          (r) => `<img src="${r.image}" data-id="${r.id}" 
-                    class="selection-thumbnail" alt="${r.name}">`
-        )
-        .join("");
-
-      if (selectedRestaurants.length > 0) {
-        nextButton.style.display = "inline-block";
-      } else {
-        nextButton.style.display = "none";
-      }
-    }
-
-    // Next button placeholder
     nextButton.addEventListener("click", () => {
       alert("Next button clicked! Implement your own logic here.");
     });
@@ -552,17 +835,14 @@
       let filtered = allRestaurants.filter((r) => {
         const sDesc = r.description_short || "";
         const sSource = r.source1 || "";
-
         const matchesType = chosenTypes.length === 0 || chosenTypes.includes(sDesc);
         const matchesSource = chosenSources.length === 0 || chosenSources.includes(sSource);
-
         return matchesType && matchesSource;
       });
 
       renderRestaurants(filtered);
       filterOverlay.style.display = "none";
     });
-
     function getSelectedOptions(selectEl) {
       const result = [];
       for (let opt of selectEl.options) {
@@ -573,73 +853,58 @@
       return result;
     }
 
-    function populateFilterOptions() {
-      const shortSet = new Set();
-      const sourceSet = new Set();
-
-      allRestaurants.forEach((r) => {
-        if (r.description_short) shortSet.add(r.description_short);
-        if (r.source1) sourceSet.add(r.source1);
-      });
-
-      // Clear out existing
-      typeSelect.innerHTML = "";
-      sourceSelect.innerHTML = "";
-
-      shortSet.forEach((val) => {
-        const opt = document.createElement("option");
-        opt.value = val;
-        opt.textContent = val;
-        typeSelect.appendChild(opt);
-      });
-      sourceSet.forEach((val) => {
-        const opt = document.createElement("option");
-        opt.value = val;
-        opt.textContent = val;
-        sourceSelect.appendChild(opt);
-      });
-    }
-
     /********************************************************
-     * SEARCH BAR FUNCTIONALITIES
+     * SEARCH BAR FUNCTIONALITIES (standard)
     ********************************************************/
-    // 1) Toggle display of search bar on icon click
+    // Show/hide the search bar on icon click
     searchIcon.addEventListener("click", (e) => {
-      e.stopPropagation(); // avoid immediate "click-outside" close
+      e.stopPropagation();
       if (searchContainer.style.display === "none" || !searchContainer.style.display) {
-        // Show search bar
         searchContainer.style.display = "block";
         searchInput.focus();
       } else {
-        // Hide search bar
         hideSearchBar();
       }
     });
 
-    // 2) Hide the search bar when clicking outside it
+    // "X" button => hide search bar
+    searchClearBtn.addEventListener("click", () => {
+      hideSearchBar();
+    });
+
+    // If user clicks outside the search container => hide
     document.addEventListener("click", (e) => {
-      if (searchContainer.style.display === "block") {
-        if (!searchContainer.contains(e.target) && e.target !== searchIcon) {
-          hideSearchBar();
-        }
+      if (
+        searchContainer.style.display === "block" &&
+        !searchContainer.contains(e.target) &&
+        e.target !== searchIcon
+      ) {
+        hideSearchBar();
       }
     });
 
+    // As soon as user scrolls => hide search bar
+    window.addEventListener("scroll", () => {
+      if (searchContainer.style.display === "block") {
+        hideSearchBar();
+      }
+    });
+
+    // Hide the search bar => reset input & restore full list
     function hideSearchBar() {
+      if (searchContainer.style.display === "none") return;
       searchContainer.style.display = "none";
       searchInput.value = "";
       renderRestaurants(allRestaurants);
     }
 
-    // 3) Live-filter the restaurants by name as user types
+    // Live-filter restaurants as user types
     searchInput.addEventListener("input", (e) => {
       const searchTerm = e.target.value.trim().toLowerCase();
       if (!searchTerm) {
-        // If empty, show all
         renderRestaurants(allRestaurants);
         return;
       }
-      // Filter by restaurant name (case-insensitive)
       const filtered = allRestaurants.filter((r) => {
         return r.name && r.name.toLowerCase().includes(searchTerm);
       });
@@ -647,45 +912,31 @@
     });
 
     /********************************************************
-     * HEADER DISAPPEARS WHEN SCROLLING DOWN, REAPPEARS WHEN UP
+     * HEADER DISAPPEARS WHEN SCROLLING DOWN, REAPPEARS ON UP
     ********************************************************/
     let lastScrollTop = 0;
     let scrollingTimeout;
 
     window.addEventListener("scroll", () => {
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      // If details page is open, do not hide header
+      if (detailsPage.style.display === "block") return;
 
-      // If scrolling down, hide the header
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       if (scrollTop > lastScrollTop) {
-        // user is scrolling down
+        // Scrolling down => hide header
         header.classList.add("hidden");
       } else {
-        // user is scrolling up
+        // Scrolling up => show header
         header.classList.remove("hidden");
       }
-      lastScrollTop = scrollTop <= 0 ? 0 : scrollTop;
+      lastScrollTop = Math.max(scrollTop, 0);
 
-      // Optional: if you want the header to reappear after user stops scrolling
-      // we can use a small timeout.
+      // If user stops scrolling for 150ms => show the header
       if (scrollingTimeout) clearTimeout(scrollingTimeout);
       scrollingTimeout = setTimeout(() => {
-        // user stopped scrolling
         header.classList.remove("hidden");
       }, 150);
     });
-
-    /********************************************************
-     * Fetch CSV => store => populate => render
-    ********************************************************/
-    fetch("restaurants.csv")
-      .then((resp) => resp.text())
-      .then((csv) => {
-        const parsed = Papa.parse(csv, { header: true });
-        allRestaurants = parsed.data;
-        populateFilterOptions();
-        renderRestaurants(allRestaurants);
-      })
-      .catch((err) => console.error(err));
   </script>
 </body>
 </html>
